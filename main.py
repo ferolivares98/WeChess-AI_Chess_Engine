@@ -54,6 +54,7 @@ def main():
                 if len(click_movimiento) == 2:
 
 
+
         dibujar_estado(screen, tablero)
         clock.tick(FPS)
         pygame.display.flip()
