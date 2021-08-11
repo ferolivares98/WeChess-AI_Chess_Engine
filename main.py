@@ -2,6 +2,7 @@ import pygame
 
 from game.constants import *
 from game.tablero import Tablero
+from game.movimiento import Movimiento
 
 from pygame.locals import (
     MOUSEBUTTONUP,
@@ -28,6 +29,8 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('ChessAI')
     tablero = Tablero()
+    lista_mov_validos = tablero.filtrar_movimientos_validos()
+    flag_movimiento = False # Flag para controlar la operación de búsqueda de movimientos a 1 por turno.
     cargar_imagenes_piezas()
     cuadrado_actual = () # Tiene conocimiento sobre el último click del ratón por parte del usuario. Tupla fila/columna.
     click_movimiento = [] # Dos tuplas de cuadrados (coordenadas).
@@ -53,14 +56,21 @@ def main():
                     click_movimiento.append(cuadrado_actual)
 
                 if len(click_movimiento) == 2:
-                    move = tablero.realizar_movimiento(click_movimiento[0], click_movimiento[1], tablero.board)
+                    move = Movimiento(click_movimiento[0], click_movimiento[1], tablero.board)
+                    if move in lista_mov_validos:
+                        tablero.realizar_movimiento(move, tablero.board)
+                        flag_movimiento = True
                     cuadrado_actual = ()
                     click_movimiento = []
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_z:
                     tablero.arreglar_movimiento(tablero.board)
+                    flag_movimiento = True
 
+        if flag_movimiento:
+            lista_mov_validos = tablero.filtrar_movimientos_validos()
+            flag_movimiento = False
         dibujar_estado(screen, tablero)
         clock.tick(FPS)
         pygame.display.flip()

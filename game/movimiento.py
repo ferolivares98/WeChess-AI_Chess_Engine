@@ -12,6 +12,7 @@ class Movimiento:
         self.endCol = end[1]
         self.piezaMov = tb[self.startFil][self.startCol]
         self.piezaCap = tb[self.endFil][self.endCol]  # Recordar la opción de "--"
+        self.moveID = self.startFil * 1000 + self.startCol * 100 + self.endFil * 10 + self.endCol
 
     def get_basic_move_notation(self):
         return self.get_rank_file(self.startFil, self.startCol) + self.get_rank_file(self.endFil, self.endCol)
@@ -20,3 +21,9 @@ class Movimiento:
 
     def get_rank_file(self, fil, col):
         return self.colToFil[col] + self.rowsToRanks[fil]
+
+    # Override del equals como en Java para comparar objetos entre sí
+    def __eq__(self, other):
+        if isinstance(other, Movimiento):
+            return self.moveID == other.moveID
+        return False
