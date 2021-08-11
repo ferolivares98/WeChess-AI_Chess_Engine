@@ -1,5 +1,6 @@
 import pygame
 from .constants import *
+from .movimiento import Movimiento
 
 
 class Tablero:
@@ -17,9 +18,7 @@ class Tablero:
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
         self.logMov = []
-        self.turnMove = 0  # 0 para blancas, 1 para negras
-        self.selected_piece = None
-        self.white_king = self.black_king = 0
+        self.turnMove = True  # True para blancas, False para negras
 
     # -------------
     # Definimos el dibujo de los cuadrados y las piezas en el tablero. En funciones separadas para que sea más claro
@@ -40,3 +39,18 @@ class Tablero:
                     # Primero se dibuja la columna por las coordenadas, si no las piezas aparecerían en vertical.
                     window.blit(IMAGES[pieza], pygame.Rect(col * SQUARE_SIZE, fil * SQUARE_SIZE,
                                                            SQUARE_SIZE, SQUARE_SIZE))
+
+    def realizar_movimiento(self, pos_ini, pos_fin, tb):
+        move = Movimiento(pos_ini, pos_fin, tb)
+        tb[move.startFil][move.startCol] = "--"
+        tb[move.endFil][move.endCol] = move.piezaMov
+        print(move.get_basic_move_notation())
+        self.logMov.append(move)
+        self.turnMove = not self.turnMove
+
+    def arreglar_movimiento(self, tb):
+        if len(self.logMov) != 0:
+            move = self.logMov.pop()
+            tb[move.startFil][move.startCol] = move.piezaMov
+            tb[move.endFil][move.endCol] = move.piezaCap
+            self.turnMove = not self.turnMove

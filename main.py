@@ -1,5 +1,4 @@
 import pygame
-import pygame.mouse
 
 from game.constants import *
 from game.tablero import Tablero
@@ -40,6 +39,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+
+            # Eventos de ratón
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 coord_raton = pygame.mouse.get_pos()  # Se obtiene la localización del ratón.
                 col = coord_raton[0] // SQUARE_SIZE
@@ -52,8 +53,13 @@ def main():
                     click_movimiento.append(cuadrado_actual)
 
                 if len(click_movimiento) == 2:
+                    move = tablero.realizar_movimiento(click_movimiento[0], click_movimiento[1], tablero.board)
+                    cuadrado_actual = ()
+                    click_movimiento = []
 
-
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_z:
+                    tablero.arreglar_movimiento(tablero.board)
 
         dibujar_estado(screen, tablero)
         clock.tick(FPS)
