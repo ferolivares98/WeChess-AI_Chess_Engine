@@ -60,8 +60,10 @@ def main():
                     if move in lista_mov_validos:
                         tablero.realizar_movimiento(move, tablero.board)
                         flag_movimiento = True
-                    cuadrado_actual = ()
-                    click_movimiento = []
+                        cuadrado_actual = ()
+                        click_movimiento = []
+                    else:
+                        click_movimiento = [cuadrado_actual]
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_z:

@@ -10,7 +10,7 @@ class Tablero:
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-            ["wp", "wp", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -31,6 +31,10 @@ class Tablero:
         # "derecha arriba" y "derecha abajo". Torres usarán las 4 primeras opciones, los alfiles las 4 últimas.
         # La reina podrá hacer uso de todas ellas, al igual que el rey (pero el segundo con movimiento limitado
         # y por tanto una lógica distinta).
+        self.wKing = (7, 4)
+        self.bKing = (0, 4)
+        self.checkmate = False
+        self.stalemate = False
 
     # -------------
     # Definimos el dibujo de los cuadrados y las piezas en el tablero. En funciones separadas para que sea más claro
@@ -58,6 +62,10 @@ class Tablero:
         print(move.get_basic_move_notation())
         self.logMov.append(move)
         self.turnoBlancas = not self.turnoBlancas
+        if move.piezaMov == 'wK':
+            self.wKing = (move.endFil, move.endCol)
+        elif move.piezaMov == 'bK':
+            self.bKing = (move.endFil, move.endCol)
 
     def arreglar_movimiento(self, tb):
         if len(self.logMov) != 0:
@@ -65,6 +73,10 @@ class Tablero:
             tb[move.startFil][move.startCol] = move.piezaMov
             tb[move.endFil][move.endCol] = move.piezaCap
             self.turnoBlancas = not self.turnoBlancas
+            if move.piezaMov == 'wK':
+                self.wKing = (move.startFil, move.startCol)
+            elif move.piezaMov == 'bK':
+                self.bKing = (move.startFil, move.startCol)
 
     def obtener_todos_movimientos(self):
         lista_moves = []
@@ -78,7 +90,36 @@ class Tablero:
         return lista_moves
 
     def filtrar_movimientos_validos(self):
-        return self.obtener_todos_movimientos()
+        moves = self.obtener_todos_movimientos()
+        for i in range(len(moves) - 1, -1, -1):
+            self.realizar_movimiento(moves[i], self.board)
+            self.turnoBlancas = not self.turnoBlancas
+            if self.inCheck():
+                moves.remove(moves[i])
+            self.turnoBlancas = not self.turnoBlancas
+            self.arreglar_movimiento(self.board)
+        if len(moves) == 0:
+            if self.inCheck():
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+        return moves
+
+    def inCheck(self):
+        if self.turnoBlancas:
+            return self.sqUnderAttack(self.wKing[0], self.wKing[1])
+
+    def sqUnderAttack(self, fil_king, col_king):
+        self.turnoBlancas = not self.turnoBlancas
+        oppMoves = self.obtener_todos_movimientos()
+        self.turnoBlancas = not self.turnoBlancas
+        for move in oppMoves:
+            if move.endFil == fil_king and move.endCol == col_king:
+                return True
+        return False
 
     def get_Pawn_Mov(self, fil, col, lista_moves):
         if self.turnoBlancas:
@@ -172,4 +213,14 @@ class Tablero:
                     break
 
     def get_King_Mov(self, fil, col, lista_moves):
-        pass
+        direcciones_de_uno_de_rey = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))
+        # Sentido de las aguajas del reloj
+        color_enemigo = 'b' if self.turnoBlancas else 'w'
+        for i in direcciones_de_uno_de_rey:
+            eleccion_fil = fil + i[0]
+            eleccion_col = col + i[1]
+            if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
+                pos_final = self.board[eleccion_fil][eleccion_col]
+                if pos_final[0] == color_enemigo or pos_final == "--":
+                    lista_moves.append(Movimiento((fil, col), (eleccion_fil, eleccion_col), self.board))
+    # Reducir junto al caballo
