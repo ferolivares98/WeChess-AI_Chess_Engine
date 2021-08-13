@@ -25,14 +25,17 @@ class Tablero:
                           'K': self.get_King_Mov}
         self.logMov = []
         self.turnoBlancas = True  # True para blancas, False para negras
-        self.direcciones = ((-1, 0), (1, 0), (0, -1), (0, 1),
-                            (-1, -1), (-1, 1), (1, -1), (1, 1))
+        self.direcciones_en_orden_cruz = ((-1, 0), (1, 0), (0, -1), (0, 1),
+                                          (-1, -1), (-1, 1), (1, -1), (1, 1))
         # Las direcciones son arriba, abajo, izq, derecha y las diagonales "izq arriba", "izq abajo",
         # "derecha arriba" y "derecha abajo". Torres usarán las 4 primeras opciones, los alfiles las 4 últimas.
         # La reina podrá hacer uso de todas ellas, al igual que el rey (pero el segundo con movimiento limitado
         # y por tanto una lógica distinta).
         self.wKing = (7, 4)
         self.bKing = (0, 4)
+        self.check = False
+        self.pins = []
+        self.checks_list = []
         self.checkmate = False
         self.stalemate = False
 
@@ -90,22 +93,53 @@ class Tablero:
         return lista_moves
 
     def filtrar_movimientos_validos(self):
-        moves = self.obtener_todos_movimientos()
-        for i in range(len(moves) - 1, -1, -1):
-            self.realizar_movimiento(moves[i], self.board)
-            self.turnoBlancas = not self.turnoBlancas
-            if self.inCheck():
-                moves.remove(moves[i])
-            self.turnoBlancas = not self.turnoBlancas
-            self.arreglar_movimiento(self.board)
-        if len(moves) == 0:
-            if self.inCheck():
-                self.checkmate = True
-            else:
-                self.stalemate = True
+        moves = []
+        self.check, self.pins, self.checks_list = self.look_for_pins_and_checks()
+        if self.turnoBlancas:
+            fil_king = self.wKing[0]
+            col_king = self.wKing[1]
         else:
-            self.checkmate = False
-            self.stalemate = False
+            fil_king = self.bKing[0]
+            col_king = self.bKing[1]
+        if self.check:
+            if len(self.checks_list) == 1:
+                moves = self.obtener_todos_movimientos()
+                check = self.checks_list[0]
+                check_fil = check[0]
+                check_col = check[1]
+                pieza_enemiga_check = self.board[check_fil][check_col]
+                sq_validas = []
+                if pieza_enemiga_check[1] == 'N':
+                    sq_validas = [(check_fil, check_col)]  # EL caballo saltaría cualquier intento de bloqueo
+                else:
+                    for i in range (1, 8):
+                        sq = (fil_king + check[2] * i, col_king + check[3] * i)
+                        sq_validas.append(sq)
+                        if sq[0] == check_fil and sq[1] == check_col:
+                            break
+                for i in range(len(moves) - 1, -1, -1):
+                    if moves[i].piezaMov[1] != 'K':
+                        if not (moves[i].endFil, moves[i].endCol) in sq_validas:
+                            moves.remove(moves[i])
+            else:
+                self.get_King_Mov(fil_king, col_king, moves)
+        else:
+            moves = self.obtener_todos_movimientos()
+        # for i in range(len(moves) - 1, -1, -1):
+        #     self.realizar_movimiento(moves[i], self.board)
+        #     self.turnoBlancas = not self.turnoBlancas
+        #     if self.inCheck():
+        #         moves.remove(moves[i])
+        #     self.turnoBlancas = not self.turnoBlancas
+        #     self.arreglar_movimiento(self.board)
+        # if len(moves) == 0:
+        #     if self.inCheck():
+        #         self.checkmate = True
+        #     else:
+        #         self.stalemate = True
+        # else:
+        #     self.checkmate = False
+        #     self.stalemate = False
         return moves
 
     def inCheck(self):
@@ -121,50 +155,142 @@ class Tablero:
                 return True
         return False
 
+    # --------------------------------------------------------------------------------------------------------------- #
+
+    # --------------------------------------------------------------------------------------------------------------- #
+
+    def look_for_pins_and_checks(self):
+        check = False
+        pins = []
+        checks_list = []
+        if self.turnoBlancas:
+            aliado = "w"
+            enemigo = "b"
+            fil_king = self.wKing[0]
+            col_king = self.wKing[1]
+        else:
+            aliado = "b"
+            enemigo = "w"
+            fil_king = self.bKing[0]
+            col_king = self.bKing[1]
+        for i in self.direcciones_en_orden_cruz:
+            posible_pin = ()
+            for j in range(1, 8):
+                eleccion_fil = fil_king + i[0] * j
+                eleccion_col = col_king + i[1] * j
+                if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
+                    pos_final = self.board[eleccion_fil][eleccion_col]
+                    if pos_final[0] == aliado and pos_final[1] != 'K':  # Rey fantasma
+                        if posible_pin == ():
+                            posible_pin = (eleccion_fil, eleccion_col, i[0], i[1])
+                        else:
+                            break
+                    elif pos_final[0] == enemigo:
+                        tipo_pieza_enemiga = pos_final[1]
+                        if (0 <= j <= 3 and type == 'R') or \
+                                (4 <= j <= 7 and type == 'B') or \
+                                (i == 1 and tipo_pieza_enemiga == 'p' and ((enemigo == 'w' and 6 <= j <= 7) or
+                                                                           (enemigo == 'b' and 4 <= j < 5))) or \
+                                (tipo_pieza_enemiga == 'Q') or (i == 1 and tipo_pieza_enemiga == 'K'):
+                            if posible_pin == ():
+                                check = True
+                                checks_list.append((eleccion_fil, eleccion_col, i[0], i[1]))
+                                break
+                            else:
+                                pins.append(posible_pin)
+                                break
+                        else:
+                            break
+                else:  # Fin de tablero
+                    break
+        # Ahora comprobamos el caballo con la lista de direcciones correspondiente:
+        direcciones_en_L = ((-2, -1), (-2, 1), (-1, 2), (1, 2), (2, -1), (2, 1), (-1, -2), (1, -2))
+        for i in direcciones_en_L:
+            eleccion_fil = fil_king + i[0]
+            eleccion_col = col_king + i[1]
+            if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
+                pos_final = self.board[eleccion_fil][eleccion_col]
+                if pos_final[0] == enemigo and pos_final[1] == 'N':
+                    check = True
+                    checks_list.append((eleccion_fil, eleccion_col, i[0], i[1]))
+        return check, pins, checks_list
+
     def get_Pawn_Mov(self, fil, col, lista_moves):
+        pin_actual = False
+        pin_dir = ()
+        for i in range(len(self.pins) - 1, -1, -1):
+            if self.pins[i][0] == fil and self.pins[i][1] == col:
+                pin_actual = True
+                pin_dir = (self.pins[i][2], self.pins[i][3])
+                self.pins.remove(self.pins[i])
+                break
+
         if self.turnoBlancas:
             if self.board[fil - 1][col] == "--":
-                lista_moves.append(Movimiento((fil, col), (fil - 1, col), self.board))
-                if fil == 6 and self.board[fil - 2][col] == "--":
-                    lista_moves.append(Movimiento((fil, col), (fil - 2, col), self.board))
-            if col - 1 >= 0:
+                if not pin_actual or pin_dir == (-1, 0):
+                    lista_moves.append(Movimiento((fil, col), (fil - 1, col), self.board))
+                    if fil == 6 and self.board[fil - 2][col] == "--":
+                        lista_moves.append(Movimiento((fil, col), (fil - 2, col), self.board))
+            if col - 1 >= 0:  # Captura izquierda
                 if self.board[fil - 1][col - 1][0] == 'b':
-                    lista_moves.append(Movimiento((fil, col), (fil - 1, col - 1), self.board))
-            if col + 1 <= 7:
+                    if not pin_actual or pin_dir == (-1, -1):
+                        lista_moves.append(Movimiento((fil, col), (fil - 1, col - 1), self.board))
+            if col + 1 <= 7:  # Captura derecha
                 if self.board[fil - 1][col + 1][0] == 'b':
-                    lista_moves.append(Movimiento((fil, col), (fil - 1, col + 1), self.board))
+                    if not pin_actual or pin_dir == (-1, 1):
+                        lista_moves.append(Movimiento((fil, col), (fil - 1, col + 1), self.board))
         else:
             if self.board[fil + 1][col] == "--":
-                lista_moves.append(Movimiento((fil, col), (fil + 1, col), self.board))
-                if fil == 1 and self.board[fil + 2][col] == "--":
-                    lista_moves.append(Movimiento((fil, col), (fil + 2, col), self.board))
+                if not pin_actual or pin_dir == (1, 0):
+                    lista_moves.append(Movimiento((fil, col), (fil + 1, col), self.board))
+                    if fil == 1 and self.board[fil + 2][col] == "--":
+                        lista_moves.append(Movimiento((fil, col), (fil + 2, col), self.board))
             if col - 1 >= 0:
                 if self.board[fil + 1][col - 1][0] == 'w':
-                    lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board))
+                    if not pin_actual or pin_dir == (1, -1):
+                        lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board))
             if col + 1 <= 7:
                 if self.board[fil + 1][col + 1][0] == 'w':
-                    lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board))
+                    if not pin_actual or pin_dir == (1, 1):
+                        lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board))
         # Faltan promociones y en passant
 
     def get_Rook_Mov(self, fil, col, lista_moves):
+        pin_actual = False
+        pin_dir = ()
+        for i in range(len(self.pins) - 1, -1, -1):
+            if self.pins[i][0] == fil and self.pins[i][1] == col:
+                pin_actual = True
+                pin_dir = (self.pins[i][2], self.pins[i][3])
+                if self.board[fil][col][1] != 'Q':  # Si es una reina solo en mov de alfiles
+                    self.pins.remove(self.pins[i])
+                break
+
         color_enemigo = 'b' if self.turnoBlancas else 'w'
-        for i in self.direcciones[:3]:  # Cambiar a itertools.isslice para optimizar ya que esto crea copia
+        for i in self.direcciones_en_orden_cruz[:3]:  # Cambiar a itertools.isslice para optimizar que esto crea copia
             for j in range(1, 8):
                 fin_eleccion_fil = fil + i[0] * j
                 fin_eleccion_col = col + i[1] * j
                 if 0 <= fin_eleccion_fil < 8 and 0 <= fin_eleccion_col < 8:
-                    pos_final = self.board[fin_eleccion_fil][fin_eleccion_col]
-                    if pos_final == "--":
-                        lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
-                    elif pos_final[0] == color_enemigo:
-                        lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
-                        break
-                    else:  # Color aliado
-                        break
+                    if not pin_actual or pin_dir == i or pin_dir == (-i[0], -i[1]):
+                        pos_final = self.board[fin_eleccion_fil][fin_eleccion_col]
+                        if pos_final == "--":
+                            lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
+                        elif pos_final[0] == color_enemigo:
+                            lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
+                            break
+                        else:  # Color aliado
+                            break
                 else:  # Nos salimos de los límites del tablero
                     break
 
     def get_Knight_Mov(self, fil, col, lista_moves):
+        pin_actual = False
+        for i in range(len(self.pins) - 1, -1, -1):
+            if self.pins[i][0] == fil and self.pins[i][1] == col:
+                pin_actual = True # Sin dirección porque los caballos no importan
+                self.pins.remove(self.pins[i])
+                break
         direcciones_en_L = ((-2, -1), (-2, 1), (-1, 2), (1, 2), (2, -1), (2, 1), (-1, -2), (1, -2))
         # Movimientos del caballo siguiendo el sentido de las agujas del reloj.
         color_enemigo = 'b' if self.turnoBlancas else 'w'
@@ -172,55 +298,76 @@ class Tablero:
             eleccion_fil = fil + i[0]  # Movimiento restrictivo a la forma de L
             eleccion_col = col + i[1]
             if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
-                pos_final = self.board[eleccion_fil][eleccion_col]
-                if pos_final[0] == color_enemigo or pos_final == "--":
-                    lista_moves.append(Movimiento((fil, col), (eleccion_fil, eleccion_col), self.board))
+                if not pin_actual:
+                    pos_final = self.board[eleccion_fil][eleccion_col]
+                    if pos_final[0] == color_enemigo or pos_final == "--":
+                        lista_moves.append(Movimiento((fil, col), (eleccion_fil, eleccion_col), self.board))
 
     def get_Bishop_Mov(self, fil, col, lista_moves):
+        pin_actual = False
+        pin_dir = ()
+        for i in range(len(self.pins) - 1, -1, -1):
+            if self.pins[i][0] == fil and self.pins[i][1] == col:
+                pin_actual = True
+                pin_dir = (self.pins[i][2], self.pins[i][3])
+                self.pins.remove(self.pins[i])
+                break
         color_enemigo = 'b' if self.turnoBlancas else 'w'
-        for i in self.direcciones[4:8]:  # Cambiar a itertools.isslice para optimizar ya que esto crea copia
+        for i in self.direcciones_en_orden_cruz[4:8]:  # Cambiar a itertools.isslice para optimizar ya que esto crea copia
             for j in range(1, 8):
                 fin_eleccion_fil = fil + i[0] * j
                 fin_eleccion_col = col + i[1] * j
                 if 0 <= fin_eleccion_fil < 8 and 0 <= fin_eleccion_col < 8:
-                    pos_final = self.board[fin_eleccion_fil][fin_eleccion_col]
-                    if pos_final == "--":
-                        lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
-                    elif pos_final[0] == color_enemigo:
-                        lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
-                        break
-                    else:  # Color aliado
-                        break
+                    if not pin_actual or pin_dir == i or pin_dir == (-i[0], -i[1]):
+                        pos_final = self.board[fin_eleccion_fil][fin_eleccion_col]
+                        if pos_final == "--":
+                            lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
+                        elif pos_final[0] == color_enemigo:
+                            lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
+                            break
+                        else:  # Color aliado
+                            break
                 else:  # Nos salimos de los límites del tablero
                     break
 
     def get_Queen_Mov(self, fil, col, lista_moves):
-        color_enemigo = 'b' if self.turnoBlancas else 'w'
-        for i in self.direcciones:  # Cambiar a itertools.isslice para optimizar ya que esto crea copia
-            for j in range(1, 8):
-                fin_eleccion_fil = fil + i[0] * j
-                fin_eleccion_col = col + i[1] * j
-                if 0 <= fin_eleccion_fil < 8 and 0 <= fin_eleccion_col < 8:
-                    pos_final = self.board[fin_eleccion_fil][fin_eleccion_col]
-                    if pos_final == "--":
-                        lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
-                    elif pos_final[0] == color_enemigo:
-                        lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
-                        break
-                    else:  # Color aliado
-                        break
-                else:  # Nos salimos de los límites del tablero
-                    break
+        self.get_Rook_Mov(fil, col, lista_moves)
+        self.get_Bishop_Mov(fil, col, lista_moves)
+        # color_enemigo = 'b' if self.turnoBlancas else 'w'
+        # for i in self.direcciones_en_orden_cruz:  # Cambiar a itertools.isslice para optimizar ya que esto crea copia
+        #     for j in range(1, 8):
+        #         fin_eleccion_fil = fil + i[0] * j
+        #         fin_eleccion_col = col + i[1] * j
+        #         if 0 <= fin_eleccion_fil < 8 and 0 <= fin_eleccion_col < 8:
+        #             pos_final = self.board[fin_eleccion_fil][fin_eleccion_col]
+        #             if pos_final == "--":
+        #                 lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
+        #             elif pos_final[0] == color_enemigo:
+        #                 lista_moves.append(Movimiento((fil, col), (fin_eleccion_fil, fin_eleccion_col), self.board))
+        #                 break
+        #             else:  # Color aliado
+        #                 break
+        #         else:  # Nos salimos de los límites del tablero
+        #             break
 
     def get_King_Mov(self, fil, col, lista_moves):
         direcciones_de_uno_de_rey = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))
         # Sentido de las aguajas del reloj
         color_enemigo = 'b' if self.turnoBlancas else 'w'
-        for i in direcciones_de_uno_de_rey:
+        for i in self.direcciones_en_orden_cruz:
             eleccion_fil = fil + i[0]
             eleccion_col = col + i[1]
             if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
                 pos_final = self.board[eleccion_fil][eleccion_col]
                 if pos_final[0] == color_enemigo or pos_final == "--":
-                    lista_moves.append(Movimiento((fil, col), (eleccion_fil, eleccion_col), self.board))
-    # Reducir junto al caballo
+                    if color_enemigo == 'b':
+                        self.wKing = (eleccion_fil, eleccion_col)
+                    else:
+                        self.bKing = (eleccion_fil, eleccion_col)
+                    check, pins, checks_list = self.look_for_pins_and_checks()
+                    if not check:
+                        lista_moves.append(Movimiento((fil, col), (eleccion_fil, eleccion_col), self.board))
+                    if color_enemigo == 'b':
+                        self.wKing = (fil, col)
+                    else:
+                        self.bKing = (fil, col)
