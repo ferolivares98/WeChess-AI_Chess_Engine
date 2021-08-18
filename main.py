@@ -57,12 +57,13 @@ def main():
 
                 if len(click_movimiento) == 2:
                     move = Movimiento(click_movimiento[0], click_movimiento[1], tablero.board)
-                    if move in lista_mov_validos:
-                        tablero.realizar_movimiento(move, tablero.board)
-                        flag_movimiento = True
-                        cuadrado_actual = ()
-                        click_movimiento = []
-                    else:
+                    for i in range(len(lista_mov_validos)):
+                        if move == lista_mov_validos[i]:
+                            tablero.realizar_movimiento(lista_mov_validos[i], tablero.board)
+                            flag_movimiento = True
+                            cuadrado_actual = ()
+                            click_movimiento = []
+                    if not flag_movimiento:
                         click_movimiento = [cuadrado_actual]
 
             elif event.type == pygame.KEYDOWN:

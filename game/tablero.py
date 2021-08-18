@@ -173,28 +173,30 @@ class Tablero:
             enemigo = "w"
             fil_king = self.bKing[0]
             col_king = self.bKing[1]
-        for i in self.direcciones_en_orden_cruz:
+        for j in range(len(self.direcciones_en_orden_cruz)):
+            d = self.direcciones_en_orden_cruz[j]
             posible_pin = ()
-            for j in range(1, 8):
-                eleccion_fil = fil_king + i[0] * j
-                eleccion_col = col_king + i[1] * j
+            for i in range(1, 8):
+                eleccion_fil = fil_king + d[0] * i
+                eleccion_col = col_king + d[1] * i
                 if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
                     pos_final = self.board[eleccion_fil][eleccion_col]
-                    if pos_final[0] == aliado and pos_final[1] != 'K':  # Rey fantasma
+                    # Rey fantasma por llamar a King_moves sin mover de verdad el rey.
+                    if pos_final[0] == aliado and pos_final[1] != 'K':
                         if posible_pin == ():
-                            posible_pin = (eleccion_fil, eleccion_col, i[0], i[1])
+                            posible_pin = (eleccion_fil, eleccion_col, d[0], d[1])
                         else:
                             break
                     elif pos_final[0] == enemigo:
                         tipo_pieza_enemiga = pos_final[1]
-                        if (0 <= j <= 3 and type == 'R') or \
-                                (4 <= j <= 7 and type == 'B') or \
+                        if (0 <= j <= 3 and tipo_pieza_enemiga == 'R') or \
+                                (4 <= j <= 7 and tipo_pieza_enemiga == 'B') or \
                                 (i == 1 and tipo_pieza_enemiga == 'p' and ((enemigo == 'w' and 6 <= j <= 7) or
                                                                            (enemigo == 'b' and 4 <= j < 5))) or \
                                 (tipo_pieza_enemiga == 'Q') or (i == 1 and tipo_pieza_enemiga == 'K'):
                             if posible_pin == ():
                                 check = True
-                                checks_list.append((eleccion_fil, eleccion_col, i[0], i[1]))
+                                checks_list.append((eleccion_fil, eleccion_col, d[0], d[1]))
                                 break
                             else:
                                 pins.append(posible_pin)
@@ -267,7 +269,7 @@ class Tablero:
                 break
 
         color_enemigo = 'b' if self.turnoBlancas else 'w'
-        for i in self.direcciones_en_orden_cruz[:3]:  # Cambiar a itertools.isslice para optimizar que esto crea copia
+        for i in self.direcciones_en_orden_cruz[:4]:  # Cambiar a itertools.isslice para optimizar que esto crea copia
             for j in range(1, 8):
                 fin_eleccion_fil = fil + i[0] * j
                 fin_eleccion_col = col + i[1] * j
@@ -313,7 +315,7 @@ class Tablero:
                 self.pins.remove(self.pins[i])
                 break
         color_enemigo = 'b' if self.turnoBlancas else 'w'
-        for i in self.direcciones_en_orden_cruz[4:8]:  # Cambiar a itertools.isslice para optimizar ya que esto crea copia
+        for i in self.direcciones_en_orden_cruz[4:8]:  # Cambiar a itertools.isslice para optimizar que esto crea copia
             for j in range(1, 8):
                 fin_eleccion_fil = fil + i[0] * j
                 fin_eleccion_col = col + i[1] * j

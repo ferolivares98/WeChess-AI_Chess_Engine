@@ -13,6 +13,7 @@ class Movimiento:
         self.piezaMov = tb[self.startFil][self.startCol]
         self.piezaCap = tb[self.endFil][self.endCol]  # Recordar la opción de "--"
         self.moveID = self.startFil * 1000 + self.startCol * 100 + self.endFil * 10 + self.endCol
+        self.isPromocion = False
 
     def get_basic_move_notation(self):
         return self.get_rank_file(self.startFil, self.startCol) + self.get_rank_file(self.endFil, self.endCol)
