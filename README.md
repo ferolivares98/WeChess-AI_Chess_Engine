@@ -1,2 +1,3 @@
 # WeChessAI
-TFG
+
+Ajedrez Player vs AI
