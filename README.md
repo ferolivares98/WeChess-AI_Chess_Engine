@@ -1,3 +1,3 @@
 # WeChessAI
 
-Ajedrez Player vs AI
+Ajedrez Player vs AI (Work in progress)
