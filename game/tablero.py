@@ -36,8 +36,9 @@ class Tablero:
         self.check = False
         self.pins = []
         self.checks_list = []
-        self.checkmate = False
+        self.checkmate = False  # Ahora mismo sin uso, disponibles para futuros mensajes
         self.stalemate = False
+        self.pos_posible_en_passant = ()  # Coordenadas donde se capturaría ante la posibilidad de En Passant.
 
     # -------------
     # Definimos el dibujo de los cuadrados y las piezas en el tablero. En funciones separadas para que sea más claro
@@ -70,6 +71,17 @@ class Tablero:
         elif move.piezaMov == 'bK':
             self.bKing = (move.endFil, move.endCol)
 
+        # En passant
+        if move.piezaMov[1] == 'p' and abs(move.startFil - move.startCol) == 2:
+            self.pos_posible_en_passant = ((move.startFil + move.startCol) // 2, move.endCol) #Media para sacar la fila exacta
+        else:
+            self.pos_posible_en_passant = ()
+        if move.isEnPassant:
+            self.board[move.startFil][move.endCol] = '--'
+        # Promoción
+        if move.isPromocion:
+            self.board[move.endFil][move.endCol] = move.piezaMov[0] + 'Q'
+
     def arreglar_movimiento(self, tb):
         if len(self.logMov) != 0:
             move = self.logMov.pop()
@@ -80,6 +92,15 @@ class Tablero:
                 self.wKing = (move.startFil, move.startCol)
             elif move.piezaMov == 'bK':
                 self.bKing = (move.startFil, move.startCol)
+
+            #En passant
+            if move.isEnPassant:
+                self.board = [move.endFil][move.endCol] = '--' # Dejamos la posición capturada vacía
+                self.board[move.startFil][move.startCol] = move.piezaCap
+                self.pos_posible_en_passant = (move.endFil, move.endCol)
+            # Deshacer el avance de 2 del peón
+            if move.piezaMov[1] == 'p' and abs(move.startFil - move.startCol) == 2:
+                self.pos_posible_en_passant = ()
 
     def obtener_todos_movimientos(self):
         lista_moves = []
@@ -110,7 +131,7 @@ class Tablero:
                 pieza_enemiga_check = self.board[check_fil][check_col]
                 sq_validas = []
                 if pieza_enemiga_check[1] == 'N':
-                    sq_validas = [(check_fil, check_col)]  # EL caballo saltaría cualquier intento de bloqueo
+                    sq_validas = [(check_fil, check_col)]  # El caballo saltaría cualquier intento de bloqueo
                 else:
                     for i in range (1, 8):
                         sq = (fil_king + check[2] * i, col_king + check[3] * i)
@@ -237,10 +258,15 @@ class Tablero:
                 if self.board[fil - 1][col - 1][0] == 'b':
                     if not pin_actual or pin_dir == (-1, -1):
                         lista_moves.append(Movimiento((fil, col), (fil - 1, col - 1), self.board))
+                elif (fil - 1, col - 1) == self.pos_posible_en_passant:
+                    # Utilizamos el parámetro opcional
+                    lista_moves.append(Movimiento((fil, col), (fil - 1, col - 1), self.board, en_passant_posible=True))
             if col + 1 <= 7:  # Captura derecha
                 if self.board[fil - 1][col + 1][0] == 'b':
                     if not pin_actual or pin_dir == (-1, 1):
                         lista_moves.append(Movimiento((fil, col), (fil - 1, col + 1), self.board))
+                elif (fil - 1, col + 1) == self.pos_posible_en_passant:
+                    lista_moves.append(Movimiento((fil, col), (fil - 1, col + 1), self.board, en_passant_posible=True))
         else:
             if self.board[fil + 1][col] == "--":
                 if not pin_actual or pin_dir == (1, 0):
@@ -251,11 +277,15 @@ class Tablero:
                 if self.board[fil + 1][col - 1][0] == 'w':
                     if not pin_actual or pin_dir == (1, -1):
                         lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board))
+                elif (fil + 1, col - 1) == self.pos_posible_en_passant:
+                    lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board, en_passant_posible=True))
             if col + 1 <= 7:
                 if self.board[fil + 1][col + 1][0] == 'w':
                     if not pin_actual or pin_dir == (1, 1):
                         lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board))
-        # Faltan promociones y en passant
+                elif (fil - 1, col + 1) == self.pos_posible_en_passant:
+                    lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board, en_passant_posible=True))
+        # Faltan promociones y en passant...
 
     def get_Rook_Mov(self, fil, col, lista_moves):
         pin_actual = False

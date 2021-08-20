@@ -5,7 +5,7 @@ class Movimiento:
     filToCol = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
     colToFil = {val: key for key, val in filToCol.items()}
 
-    def __init__(self, start, end, tb):
+    def __init__(self, start, end, tb, en_passant_posible=False):
         self.startFil = start[0]
         self.startCol = start[1]
         self.endFil = end[0]
@@ -13,7 +13,12 @@ class Movimiento:
         self.piezaMov = tb[self.startFil][self.startCol]
         self.piezaCap = tb[self.endFil][self.endCol]  # Recordar la opción de "--"
         self.moveID = self.startFil * 1000 + self.startCol * 100 + self.endFil * 10 + self.endCol
-        self.isPromocion = False
+        # self.isEnPassant = False
+        # Movimientos únicos
+        self.isEnPassant = en_passant_posible
+        if self.isEnPassant:
+            self.piezaCap = 'bp' if self.piezaMov == 'wp' else 'wp'
+        self.isPromocion = (self.piezaMov == 'wp' and self.endFil == 0) or (self.piezaMov == 'bp' and self.endFil == 7)
 
     def get_basic_move_notation(self):
         return self.get_rank_file(self.startFil, self.startCol) + self.get_rank_file(self.endFil, self.endCol)
