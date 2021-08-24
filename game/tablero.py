@@ -72,8 +72,8 @@ class Tablero:
             self.bKing = (move.endFil, move.endCol)
 
         # En passant
-        if move.piezaMov[1] == 'p' and abs(move.startFil - move.startCol) == 2:
-            self.pos_posible_en_passant = ((move.startFil + move.startCol) // 2, move.endCol) #Media para sacar la fila exacta
+        if move.piezaMov[1] == 'p' and abs(move.startFil - move.endFil) == 2:
+            self.pos_posible_en_passant = ((move.startFil + move.endFil) // 2, move.endCol) # Media para sacar la fila exacta
         else:
             self.pos_posible_en_passant = ()
         if move.isEnPassant:
@@ -93,13 +93,13 @@ class Tablero:
             elif move.piezaMov == 'bK':
                 self.bKing = (move.startFil, move.startCol)
 
-            #En passant
+            # En passant
             if move.isEnPassant:
-                self.board = [move.endFil][move.endCol] = '--' # Dejamos la posición capturada vacía
-                self.board[move.startFil][move.startCol] = move.piezaCap
+                self.board[move.endFil][move.endCol] = '--' # Dejamos la posición capturada vacía
+                self.board[move.startFil][move.endCol] = move.piezaCap
                 self.pos_posible_en_passant = (move.endFil, move.endCol)
             # Deshacer el avance de 2 del peón
-            if move.piezaMov[1] == 'p' and abs(move.startFil - move.startCol) == 2:
+            if move.piezaMov[1] == 'p' and abs(move.startFil - move.endFil) == 2:
                 self.pos_posible_en_passant = ()
 
     def obtener_todos_movimientos(self):
@@ -283,7 +283,7 @@ class Tablero:
                 if self.board[fil + 1][col + 1][0] == 'w':
                     if not pin_actual or pin_dir == (1, 1):
                         lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board))
-                elif (fil - 1, col + 1) == self.pos_posible_en_passant:
+                elif (fil + 1, col + 1) == self.pos_posible_en_passant:
                     lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board, en_passant_posible=True))
         # Faltan promociones y en passant...
 
