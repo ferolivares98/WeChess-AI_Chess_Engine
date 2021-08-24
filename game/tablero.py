@@ -1,6 +1,7 @@
 import pygame
 from .constants import *
 from .movimiento import Movimiento
+from .castle import Castle
 
 
 class Tablero:
@@ -27,6 +28,8 @@ class Tablero:
         self.turnoBlancas = True  # True para blancas, False para negras
         self.direcciones_en_orden_cruz = ((-1, 0), (1, 0), (0, -1), (0, 1),
                                           (-1, -1), (-1, 1), (1, -1), (1, 1))
+        self.direcciones_en_orden_l = ((-2, -1), (-2, 1), (-1, 2), (1, 2),
+                                       (2, -1), (2, 1), (-1, -2), (1, -2))
         # Las direcciones son arriba, abajo, izq, derecha y las diagonales "izq arriba", "izq abajo",
         # "derecha arriba" y "derecha abajo". Torres usarán las 4 primeras opciones, los alfiles las 4 últimas.
         # La reina podrá hacer uso de todas ellas, al igual que el rey (pero el segundo con movimiento limitado
@@ -39,19 +42,24 @@ class Tablero:
         self.checkmate = False  # Ahora mismo sin uso, disponibles para futuros mensajes
         self.stalemate = False
         self.pos_posible_en_passant = ()  # Coordenadas donde se capturaría ante la posibilidad de En Passant.
+        self.op_castle = Castle(True, True, True, True)
+        self.op_castle_log = [Castle(self.op_castle.w_king_side, self.op_castle.w_queen_side,
+                                     self.op_castle.b_king_side, self.op_castle.b_queen_side)]
 
     # -------------
     # Definimos el dibujo de los cuadrados y las piezas en el tablero. En funciones separadas para que sea más claro
     # y para simplificar unas futuras mejoras.
     # -------------
-    def dibujar_cuadrado(self, window):
+    @staticmethod
+    def dibujar_cuadrado(window):
         window.fill(DARK_SQUARE)
         for fil in range(ROWS):
             for col in range(fil % 2, ROWS, 2):
                 pygame.draw.rect(window, LIGHT_SQUARE, (fil * SQUARE_SIZE, col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 
     # Al dejarlo separado nos permite simplificar la personalización por parte del usuario.
-    def dibujar_piezas(self, window, tb):
+    @staticmethod
+    def dibujar_piezas(window, tb):
         for fil in range(ROWS):
             for col in range(COLS):
                 pieza = tb[fil][col]
@@ -73,14 +81,45 @@ class Tablero:
 
         # En passant
         if move.piezaMov[1] == 'p' and abs(move.startFil - move.endFil) == 2:
-            self.pos_posible_en_passant = ((move.startFil + move.endFil) // 2, move.endCol) # Media para sacar la fila exacta
+            # Media para sacar la fila exacta, ya sea por arriba o abajo
+            self.pos_posible_en_passant = ((move.startFil + move.endFil) // 2, move.endCol)
         else:
             self.pos_posible_en_passant = ()
         if move.isEnPassant:
             self.board[move.startFil][move.endCol] = '--'
+
         # Promoción
         if move.isPromocion:
             self.board[move.endFil][move.endCol] = move.piezaMov[0] + 'Q'
+
+        # Obligatoriedades de castling:
+        # 1. Primer movimiento de K y R
+        # 2. Casillas libres
+        # 3. No checks
+        self.actualizar_opciones_castle(move)
+        self.op_castle_log.append(Castle(self.op_castle.w_king_side, self.op_castle.w_queen_side,
+                                         self.op_castle.b_king_side, self.op_castle.b_queen_side))
+
+    # Actualizar las 4 opciones de castle
+    def actualizar_opciones_castle(self, move):
+        if move.piezaMov == 'wK':
+            self.op_castle.w_king_side = False
+            self.op_castle.w_queen_side = False
+        elif move.piezaMov == 'bK':
+            self.op_castle.b_king_side = False
+            self.op_castle.b_queen_side = False
+        elif move.piezaMov == 'wR':
+            if move.startFil == 7:
+                if move.startCol == 0:
+                    self.op_castle.w_queen_side = False
+                elif move.startCol == 7:
+                    self.op_castle.w_king_side = False
+        elif move.piezaMov == 'bR':
+            if move.startFil == 0:
+                if move.startCol == 0:
+                    self.op_castle.b_queen_side = False
+                elif move.startCol == 7:
+                    self.op_castle.b_king_side = False
 
     def arreglar_movimiento(self, tb):
         if len(self.logMov) != 0:
@@ -95,12 +134,16 @@ class Tablero:
 
             # En passant
             if move.isEnPassant:
-                self.board[move.endFil][move.endCol] = '--' # Dejamos la posición capturada vacía
+                self.board[move.endFil][move.endCol] = '--'  # Dejamos la posición capturada vacía
                 self.board[move.startFil][move.endCol] = move.piezaCap
                 self.pos_posible_en_passant = (move.endFil, move.endCol)
             # Deshacer el avance de 2 del peón
             if move.piezaMov[1] == 'p' and abs(move.startFil - move.endFil) == 2:
                 self.pos_posible_en_passant = ()
+
+            # Castling
+            self.op_castle_log.pop()
+            self.op_castle = self.op_castle_log[-1]
 
     def obtener_todos_movimientos(self):
         lista_moves = []
@@ -133,7 +176,7 @@ class Tablero:
                 if pieza_enemiga_check[1] == 'N':
                     sq_validas = [(check_fil, check_col)]  # El caballo saltaría cualquier intento de bloqueo
                 else:
-                    for i in range (1, 8):
+                    for i in range(1, 8):
                         sq = (fil_king + check[2] * i, col_king + check[3] * i)
                         sq_validas.append(sq)
                         if sq[0] == check_fil and sq[1] == check_col:
@@ -169,9 +212,9 @@ class Tablero:
 
     def sqUnderAttack(self, fil_king, col_king):
         self.turnoBlancas = not self.turnoBlancas
-        oppMoves = self.obtener_todos_movimientos()
+        list_moves = self.obtener_todos_movimientos()
         self.turnoBlancas = not self.turnoBlancas
-        for move in oppMoves:
+        for move in list_moves:
             if move.endFil == fil_king and move.endCol == col_king:
                 return True
         return False
@@ -226,9 +269,8 @@ class Tablero:
                             break
                 else:  # Fin de tablero
                     break
-        # Ahora comprobamos el caballo con la lista de direcciones correspondiente:
-        direcciones_en_L = ((-2, -1), (-2, 1), (-1, 2), (1, 2), (2, -1), (2, 1), (-1, -2), (1, -2))
-        for i in direcciones_en_L:
+        # Ahora comprobamos el caballo con la lista de direcciones correspondiente:\
+        for i in self.direcciones_en_orden_l:
             eleccion_fil = fil_king + i[0]
             eleccion_col = col_king + i[1]
             if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
@@ -320,13 +362,12 @@ class Tablero:
         pin_actual = False
         for i in range(len(self.pins) - 1, -1, -1):
             if self.pins[i][0] == fil and self.pins[i][1] == col:
-                pin_actual = True # Sin dirección porque los caballos no importan
+                pin_actual = True  # Sin dirección porque los caballos no importan
                 self.pins.remove(self.pins[i])
                 break
-        direcciones_en_L = ((-2, -1), (-2, 1), (-1, 2), (1, 2), (2, -1), (2, 1), (-1, -2), (1, -2))
         # Movimientos del caballo siguiendo el sentido de las agujas del reloj.
         color_enemigo = 'b' if self.turnoBlancas else 'w'
-        for i in direcciones_en_L:
+        for i in self.direcciones_en_orden_l:
             eleccion_fil = fil + i[0]  # Movimiento restrictivo a la forma de L
             eleccion_col = col + i[1]
             if 0 <= eleccion_fil < 8 and 0 <= eleccion_col < 8:
@@ -383,7 +424,6 @@ class Tablero:
         #             break
 
     def get_King_Mov(self, fil, col, lista_moves):
-        direcciones_de_uno_de_rey = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))
         # Sentido de las aguajas del reloj
         color_enemigo = 'b' if self.turnoBlancas else 'w'
         for i in self.direcciones_en_orden_cruz:
@@ -403,3 +443,5 @@ class Tablero:
                         self.wKing = (fil, col)
                     else:
                         self.bKing = (fil, col)
+        # Movimientos extra (castle)
+
