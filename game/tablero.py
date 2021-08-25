@@ -72,6 +72,8 @@ class Tablero:
         tb[move.startFil][move.startCol] = "--"
         tb[move.endFil][move.endCol] = move.piezaMov
         print(move.get_basic_move_notation())
+        for op in self.op_castle_log:
+            print(op.w_king_side, op.w_queen_side, op.b_king_side, op.b_queen_side)
         self.logMov.append(move)
         self.turnoBlancas = not self.turnoBlancas
         if move.piezaMov == 'wK':
@@ -93,12 +95,19 @@ class Tablero:
             self.board[move.endFil][move.endCol] = move.piezaMov[0] + 'Q'
 
         # Obligatoriedades de castling:
-        # 1. Primer movimiento de K y R
-        # 2. Casillas libres
-        # 3. No checks
         self.actualizar_opciones_castle(move)
         self.op_castle_log.append(Castle(self.op_castle.w_king_side, self.op_castle.w_queen_side,
                                          self.op_castle.b_king_side, self.op_castle.b_queen_side))
+        # 1. Primer movimiento de K y R
+        # 2. Casillas libres
+        # 3. No checks
+        if move.isCastle:
+            if move.endCol - move.startCol == 2:  # Kingside
+                self.board[move.endFil][move.endCol - 1] = self.board[move.endFil][move.endCol + 1]
+                self.board[move.endFil][move.endCol + 1] = '--'
+            else:
+                self.board[move.endFil][move.endCol + 1] = self.board[move.endFil][move.endCol - 2]
+                self.board[move.endFil][move.endCol - 2] = '--'
 
     # Actualizar las 4 opciones de castle
     def actualizar_opciones_castle(self, move):
@@ -143,7 +152,14 @@ class Tablero:
 
             # Castling
             self.op_castle_log.pop()
-            self.op_castle = self.op_castle_log[-1]
+            self.op_castle = self.op_castle_log[-1]  # Revisar
+            if move.isCastle:
+                if move.endCol - move.startCol == 2:  # Kingside y al contrario que en el realizar
+                    self.board[move.endFil][move.endCol + 1] = self.board[move.endFil][move.endCol - 1]
+                    self.board[move.endFil][move.endCol - 1] = '--'
+                else:
+                    self.board[move.endFil][move.endCol - 2] = self.board[move.endFil][move.endCol + 1]
+                    self.board[move.endFil][move.endCol + 1] = '--'
 
     def obtener_todos_movimientos(self):
         lista_moves = []
@@ -196,19 +212,26 @@ class Tablero:
         #         moves.remove(moves[i])
         #     self.turnoBlancas = not self.turnoBlancas
         #     self.arreglar_movimiento(self.board)
-        # if len(moves) == 0:
-        #     if self.inCheck():
-        #         self.checkmate = True
-        #     else:
-        #         self.stalemate = True
-        # else:
-        #     self.checkmate = False
-        #     self.stalemate = False
+        if len(moves) == 0:
+            if self.inCheck():
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+
+        if self.turnoBlancas:
+            self.get_Castling_Mov(self.wKing[0], self.wKing[1], moves)
+        else:
+            self.get_Castling_Mov(self.bKing[0], self.bKing[1], moves)
         return moves
 
     def inCheck(self):
         if self.turnoBlancas:
             return self.sqUnderAttack(self.wKing[0], self.wKing[1])
+        else:
+            return self.sqUnderAttack(self.bKing[0], self.bKing[1])
 
     def sqUnderAttack(self, fil_king, col_king):
         self.turnoBlancas = not self.turnoBlancas
@@ -443,5 +466,16 @@ class Tablero:
                         self.wKing = (fil, col)
                     else:
                         self.bKing = (fil, col)
-        # Movimientos extra (castle)
 
+    def get_Castling_Mov(self, fil, col, lista_moves):
+        if self.sqUnderAttack(fil, col):
+            return
+        if (self.turnoBlancas and self.op_castle.w_king_side) or (not self.turnoBlancas and self.op_castle.b_king_side):
+            if self.board[fil][col + 1] == '--' and self.board[fil][col + 2] == '--':
+                if not self.sqUnderAttack(fil, col + 1) and not self.sqUnderAttack(fil, col + 2):
+                    lista_moves.append(Movimiento((fil, col), (fil, col + 2), self.board, is_castle=True))
+        if (self.turnoBlancas and self.op_castle.w_queen_side) or \
+                (not self.turnoBlancas and self.op_castle.b_queen_side):
+            if self.board[fil][col - 1] == '--' and self.board[fil][col - 2] == '--' and self.board[fil][col - 3] == '--':
+                if not self.sqUnderAttack(fil, col - 1) and not self.sqUnderAttack(fil, col - 2):
+                    lista_moves.append(Movimiento((fil, col), (fil, col - 2), self.board, is_castle=True))
