@@ -1,5 +1,6 @@
 import pygame
-from .constants import *
+import copy
+from constants import *
 from .movimiento import Movimiento
 from .castle import Castle
 
@@ -68,6 +69,24 @@ class Tablero:
                     window.blit(IMAGES[pieza], pygame.Rect(col * SQUARE_SIZE, fil * SQUARE_SIZE,
                                                            SQUARE_SIZE, SQUARE_SIZE))
 
+    def dibujar_realzar_posibles_casillas(self, window, tb, cuadrado_actual, lista_mov):
+        if cuadrado_actual != ():
+            fil, col = cuadrado_actual
+            if tb[fil][col][0] == ('w' if self.turnoBlancas else 'b'):
+                sq = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
+                sq.set_alpha(TRANSPARENCIA)  # Transparencia (0-255)
+                sq.fill(pygame.Color(COLOR_VERDE_CASILLAS_MARC))
+                window.blit(sq, (col * SQUARE_SIZE, fil * SQUARE_SIZE))
+                # sq.set_alpha(TRANSPARENCIA//2)  # Transparencia mayor en los movimientos
+                sq.fill(pygame.Color(COLOR_AZUL_CASILLAS_MOV))
+                for m in lista_mov:
+                    if m.startFil == fil and m.startCol == col:
+                        window.blit(sq, (SQUARE_SIZE * m.endCol, SQUARE_SIZE * m.endFil))
+                        # Marcado más discreto con círculos (habría que mejorarlo ante posibles capturas)
+                        # pygame.draw.circle(window, COLOR_GRIS_CASILLAS_MOV,
+                        #                  (m.endCol * SQUARE_SIZE + SQUARE_SIZE//2,
+                        #                   m.endFil * SQUARE_SIZE + SQUARE_SIZE//2), SQUARE_SIZE//6, 20)
+
     def realizar_movimiento(self, move, tb):
         tb[move.startFil][move.startCol] = "--"
         tb[move.endFil][move.endCol] = move.piezaMov
@@ -129,6 +148,19 @@ class Tablero:
                     self.op_castle.b_queen_side = False
                 elif move.startCol == 7:
                     self.op_castle.b_king_side = False
+        # Ante captura de torre
+        if move.piezaCap == 'bR':
+            if move.endFil == 0:
+                if move.endCol == 0:
+                    self.op_castle.b_queen_side = False
+                elif move.endCol == 7:  # Lo comprobamos aún así para que solo se llegara a hacer en una ocasión
+                    self.op_castle.b_king_side = False
+        elif move.piezaCap == 'wR':
+            if move.endFil == 7:
+                if move.endCol == 0:
+                    self.op_castle.w_queen_side = False
+                elif move.endCol == 7:
+                    self.op_castle.w_king_side = False
 
     def arreglar_movimiento(self, tb):
         if len(self.logMov) != 0:
@@ -151,8 +183,9 @@ class Tablero:
                 self.pos_posible_en_passant = ()
 
             # Castling
-            self.op_castle_log.pop()
-            self.op_castle = self.op_castle_log[-1]  # Revisar
+            if len(self.op_castle_log) != 0:  # Revisar
+                self.op_castle_log.pop()
+                self.op_castle = copy.deepcopy(self.op_castle_log[-1])  # Deep copy de objeto mutable
             if move.isCastle:
                 if move.endCol - move.startCol == 2:  # Kingside y al contrario que en el realizar
                     self.board[move.endFil][move.endCol + 1] = self.board[move.endFil][move.endCol - 1]
@@ -476,6 +509,7 @@ class Tablero:
                     lista_moves.append(Movimiento((fil, col), (fil, col + 2), self.board, is_castle=True))
         if (self.turnoBlancas and self.op_castle.w_queen_side) or \
                 (not self.turnoBlancas and self.op_castle.b_queen_side):
-            if self.board[fil][col - 1] == '--' and self.board[fil][col - 2] == '--' and self.board[fil][col - 3] == '--':
+            if self.board[fil][col - 1] == '--' and self.board[fil][col - 2] == '--' \
+                    and self.board[fil][col - 3] == '--':
                 if not self.sqUnderAttack(fil, col - 1) and not self.sqUnderAttack(fil, col - 2):
                     lista_moves.append(Movimiento((fil, col), (fil, col - 2), self.board, is_castle=True))

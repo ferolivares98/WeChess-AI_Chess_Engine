@@ -1,15 +1,8 @@
 import pygame
 
-from game.constants import *
+from constants import *
 from game.tablero import Tablero
 from game.movimiento import Movimiento
-
-from pygame.locals import (
-    MOUSEBUTTONUP,
-    K_ESCAPE,
-    KEYDOWN,
-    QUIT,
-)
 
 
 # Creamos un diccionario local con las piezas. Una sola llamada por ejecucuión.
@@ -20,20 +13,15 @@ def cargar_imagenes_piezas():
                                                (SQUARE_SIZE, SQUARE_SIZE))
 
 
-def dibujar_estado(screen, tablero):
-    tablero.dibujar_cuadrado(screen)
-    tablero.dibujar_piezas(screen, tablero.board)
-
-
 def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('ChessAI')
     tablero = Tablero()
     lista_mov_validos = tablero.filtrar_movimientos_validos()
-    flag_movimiento = False # Flag para controlar la operación de búsqueda de movimientos a 1 por turno.
+    flag_movimiento = False  # Flag para controlar la operación de búsqueda de movimientos a 1 por turno.
     cargar_imagenes_piezas()
-    cuadrado_actual = () # Tiene conocimiento sobre el último click del ratón por parte del usuario. Tupla fila/columna.
-    click_movimiento = [] # Dos tuplas de cuadrados (coordenadas).
+    cuadrado_actual = ()  # Tiene conocimiento sobre el último click del ratón por parte de usuario. Tupla fila/columna.
+    click_movimiento = []  # Dos tuplas de cuadrados (coordenadas).
 
     run = True
     clock = pygame.time.Clock()
@@ -49,7 +37,7 @@ def main():
                 col = coord_raton[0] // SQUARE_SIZE
                 fil = coord_raton[1] // SQUARE_SIZE
                 if cuadrado_actual == (fil, col):
-                    cuadrado_actual = () # Desmarcamos el último click
+                    cuadrado_actual = ()  # Desmarcamos el último click
                     click_movimiento = []
                 else:
                     cuadrado_actual = (fil, col)
@@ -74,11 +62,17 @@ def main():
         if flag_movimiento:
             lista_mov_validos = tablero.filtrar_movimientos_validos()
             flag_movimiento = False
-        dibujar_estado(screen, tablero)
+        dibujar_estado(screen, tablero, cuadrado_actual, lista_mov_validos)
         clock.tick(FPS)
         pygame.display.flip()
 
     pygame.quit()
+
+
+def dibujar_estado(screen, tablero, cuadrado_actual, lista_mov):
+    tablero.dibujar_cuadrado(screen)
+    tablero.dibujar_realzar_posibles_casillas(screen, tablero.board, cuadrado_actual, lista_mov)
+    tablero.dibujar_piezas(screen, tablero.board)
 
 
 if __name__ == '__main__':
