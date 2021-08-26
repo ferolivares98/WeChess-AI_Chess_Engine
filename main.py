@@ -48,9 +48,12 @@ def main():
                     for i in range(len(lista_mov_validos)):
                         if move == lista_mov_validos[i]:
                             tablero.realizar_movimiento(lista_mov_validos[i], tablero.board)
+                            # La animación la colocamos aquí para evitar su aparición al deshacer movimientos
+                            animacion_mov(tablero.logMov[-1], screen, tablero, clock)
                             flag_movimiento = True
                             cuadrado_actual = ()
                             click_movimiento = []
+                            break
                     if not flag_movimiento:
                         click_movimiento = [cuadrado_actual]
 
@@ -73,6 +76,27 @@ def dibujar_estado(screen, tablero, cuadrado_actual, lista_mov):
     tablero.dibujar_cuadrado(screen)
     tablero.dibujar_realzar_posibles_casillas(screen, tablero.board, cuadrado_actual, lista_mov)
     tablero.dibujar_piezas(screen, tablero.board)
+
+
+def animacion_mov(move, screen, tablero, clock):  # Revisar resaltar último movimiento
+    linea_fil = move.endFil - move.startFil
+    linea_col = move.endCol - move.startCol
+    fps_por_cuadrado = 3  # fps que lleva avanzar un cuadrado
+    contador_fps = (abs(linea_fil) + abs(linea_col)) * fps_por_cuadrado
+    for frame in range(contador_fps + 1):  # Revisar
+        fil_actual, col_actual = ((move.startFil + linea_fil * frame / contador_fps,
+                                   move.startCol + linea_col * frame / contador_fps))
+        tablero.dibujar_cuadrado(screen)
+        tablero.dibujar_piezas(screen, tablero.board)
+        color = DARK_SQUARE if (move.endFil + move.endCol) % 2 else LIGHT_SQUARE
+        final_sq = pygame.Rect(move.endCol * SQUARE_SIZE, move.endFil * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+        pygame.draw.rect(screen, color, final_sq)
+        if move.piezaCap != '--':
+            screen.blit(IMAGES[move.piezaCap], final_sq)
+        screen.blit(IMAGES[move.piezaMov], pygame.Rect(col_actual * SQUARE_SIZE, fil_actual * SQUARE_SIZE,
+                                                       SQUARE_SIZE, SQUARE_SIZE))
+        pygame.display.flip()
+        clock.tick(60)
 
 
 if __name__ == '__main__':
