@@ -5,25 +5,22 @@ from game.tablero import Tablero
 from game.movimiento import Movimiento
 
 
-# Creamos un diccionario local con las piezas. Una sola llamada por ejecucuión.
-def cargar_imagenes_piezas():
-    piezas = ['wp', 'wR', 'wN', 'wB', 'wK', 'wQ', 'bp', 'bR', 'bN', 'bB', 'bK', 'bQ']
-    for pieza in piezas:
-        IMAGES[pieza] = pygame.transform.scale(pygame.image.load("assets/" + pieza + ".png"),
-                                               (SQUARE_SIZE, SQUARE_SIZE))
-
-
 def main():
+    """
+    Inicializa el programa y atiende los distintos eventos y funciones
+
+    tablero = Tablero(). Inicia el tablero al completo y permite que comience la partida
+    lista_mov_validos = tablero.filtrar_movimientos_validos(). Filtra los movimientos válidos
+    flag_movimiento = False  # Flag para controlar la operación de búsqueda de movimientos a 1 por turno.
+    cuadrado_actual = ()  # Conocimiento sobre el último click del ratón por parte de usuario. Tupla fila/columna.
+    click_movimiento = []  # Dos tuplas de cuadrados (coordenadas). Comienzo y fin de los clicks.
+    game_over = False  # Control sobre checkmates, stalemates y reinicios de partidas con la tecla R.
+    """
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption('ChessAI')
-    tablero = Tablero()
-    lista_mov_validos = tablero.filtrar_movimientos_validos()
-    flag_movimiento = False  # Flag para controlar la operación de búsqueda de movimientos a 1 por turno.
+    pygame.display.set_caption('WeChessAI')
     cargar_imagenes_piezas()
-    cuadrado_actual = ()  # Tiene conocimiento sobre el último click del ratón por parte de usuario. Tupla fila/columna.
-    click_movimiento = []  # Dos tuplas de cuadrados (coordenadas).
-    game_over = False
+    tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = inicializar_partida()
 
     run = True
     clock = pygame.time.Clock()
@@ -65,12 +62,8 @@ def main():
                     tablero.arreglar_movimiento(tablero.board)
                     flag_movimiento = True
                 if event.key == pygame.K_r:
-                    tablero = Tablero()
-                    lista_mov_validos = tablero.filtrar_movimientos_validos()
-                    flag_movimiento = False
-                    cuadrado_actual = ()
-                    click_movimiento = []
-                    game_over = False
+                    tablero, lista_mov_validos, flag_movimiento, \
+                    cuadrado_actual, click_movimiento, game_over = inicializar_partida()
 
         if flag_movimiento:
             lista_mov_validos = tablero.filtrar_movimientos_validos()
@@ -91,6 +84,22 @@ def main():
         pygame.display.flip()
 
     pygame.quit()
+
+
+# Creamos un diccionario local con las piezas. Una sola llamada por ejecucuión.
+def cargar_imagenes_piezas():
+    """
+    Carga de las imágenes de las distintas piezas del programa. Una llamada por ejecución (reinicios incluidos).
+    """
+    piezas = ['wp', 'wR', 'wN', 'wB', 'wK', 'wQ', 'bp', 'bR', 'bN', 'bB', 'bK', 'bQ']
+    for pieza in piezas:
+        IMAGES[pieza] = pygame.transform.scale(pygame.image.load("assets/" + pieza + ".png"),
+                                               (SQUARE_SIZE, SQUARE_SIZE))
+
+
+def inicializar_partida():
+    tab = Tablero()
+    return tab, tab.filtrar_movimientos_validos(), False, (), [], False
 
 
 def dibujar_estado(screen, tablero, cuadrado_actual, lista_mov):
@@ -123,8 +132,8 @@ def animacion_mov(move, screen, tablero, clock):  # Revisar resaltar último mov
 def popup_en_pantalla(screen, text):
     font = pygame.font.SysFont("Ubuntu", 48, True, False)
     texto_titulo = font.render(text, False, pygame.Color(COLOR_NEGRO))
-    texto_coord = pygame.Rect(SCREEN_WIDTH/2 - texto_titulo.get_width()/2,
-                              SCREEN_HEIGHT - texto_titulo.get_height()/2 - SQUARE_SIZE/2,
+    texto_coord = pygame.Rect(SCREEN_WIDTH / 2 - texto_titulo.get_width() / 2,
+                              SCREEN_HEIGHT - texto_titulo.get_height() / 2 - SQUARE_SIZE / 2,
                               SCREEN_WIDTH, SCREEN_HEIGHT)
     screen.blit(texto_titulo, texto_coord)
 

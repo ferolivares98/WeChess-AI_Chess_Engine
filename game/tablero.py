@@ -91,7 +91,7 @@ class Tablero:
     def realizar_movimiento(self, move, tb):
         tb[move.startFil][move.startCol] = "--"
         tb[move.endFil][move.endCol] = move.piezaMov
-        print(move.get_basic_move_notation())
+        print(move.piezaMov + ": " + move.get_basic_move_notation())
         # for op in self.op_castle_log:
         #     print(op.w_king_side, op.w_queen_side, op.b_king_side, op.b_queen_side)
         self.logMov.append(move)
