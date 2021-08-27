@@ -14,6 +14,7 @@ def cargar_imagenes_piezas():
 
 
 def main():
+    pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('ChessAI')
     tablero = Tablero()
@@ -22,6 +23,7 @@ def main():
     cargar_imagenes_piezas()
     cuadrado_actual = ()  # Tiene conocimiento sobre el último click del ratón por parte de usuario. Tupla fila/columna.
     click_movimiento = []  # Dos tuplas de cuadrados (coordenadas).
+    game_over = False
 
     run = True
     clock = pygame.time.Clock()
@@ -33,39 +35,58 @@ def main():
 
             # Eventos de ratón
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                coord_raton = pygame.mouse.get_pos()  # Se obtiene la localización del ratón.
-                col = coord_raton[0] // SQUARE_SIZE
-                fil = coord_raton[1] // SQUARE_SIZE
-                if cuadrado_actual == (fil, col):
-                    cuadrado_actual = ()  # Desmarcamos el último click
-                    click_movimiento = []
-                else:
-                    cuadrado_actual = (fil, col)
-                    click_movimiento.append(cuadrado_actual)
+                if not game_over:  # Revisar (cuando se amplíe en menú)
+                    coord_raton = pygame.mouse.get_pos()  # Se obtiene la localización del ratón.
+                    col = coord_raton[0] // SQUARE_SIZE
+                    fil = coord_raton[1] // SQUARE_SIZE
+                    if cuadrado_actual == (fil, col):
+                        cuadrado_actual = ()  # Desmarcamos el último click
+                        click_movimiento = []
+                    else:
+                        cuadrado_actual = (fil, col)
+                        click_movimiento.append(cuadrado_actual)
 
-                if len(click_movimiento) == 2:
-                    move = Movimiento(click_movimiento[0], click_movimiento[1], tablero.board)
-                    for i in range(len(lista_mov_validos)):
-                        if move == lista_mov_validos[i]:
-                            tablero.realizar_movimiento(lista_mov_validos[i], tablero.board)
-                            # La animación la colocamos aquí para evitar su aparición al deshacer movimientos
-                            animacion_mov(tablero.logMov[-1], screen, tablero, clock)
-                            flag_movimiento = True
-                            cuadrado_actual = ()
-                            click_movimiento = []
-                            break
-                    if not flag_movimiento:
-                        click_movimiento = [cuadrado_actual]
+                    if len(click_movimiento) == 2:
+                        move = Movimiento(click_movimiento[0], click_movimiento[1], tablero.board)
+                        for i in range(len(lista_mov_validos)):
+                            if move == lista_mov_validos[i]:
+                                tablero.realizar_movimiento(lista_mov_validos[i], tablero.board)
+                                # La animación la colocamos aquí para evitar su aparición al deshacer movimientos
+                                animacion_mov(tablero.logMov[-1], screen, tablero, clock)  # O usar flags
+                                flag_movimiento = True
+                                cuadrado_actual = ()
+                                click_movimiento = []
+                                break
+                        if not flag_movimiento:
+                            click_movimiento = [cuadrado_actual]
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_z:
                     tablero.arreglar_movimiento(tablero.board)
                     flag_movimiento = True
+                if event.key == pygame.K_r:
+                    tablero = Tablero()
+                    lista_mov_validos = tablero.filtrar_movimientos_validos()
+                    flag_movimiento = False
+                    cuadrado_actual = ()
+                    click_movimiento = []
+                    game_over = False
 
         if flag_movimiento:
             lista_mov_validos = tablero.filtrar_movimientos_validos()
             flag_movimiento = False
         dibujar_estado(screen, tablero, cuadrado_actual, lista_mov_validos)
+
+        if tablero.checkmate:
+            game_over = True
+            if tablero.turnoBlancas:
+                popup_en_pantalla(screen, 'Checkmate. Ganan negras!')
+            else:
+                popup_en_pantalla(screen, 'Checkmate. Ganan blancas!')
+        if tablero.stalemate:
+            game_over = True
+            popup_en_pantalla(screen, 'Stalemate')
+
         clock.tick(FPS)
         pygame.display.flip()
 
@@ -97,6 +118,15 @@ def animacion_mov(move, screen, tablero, clock):  # Revisar resaltar último mov
                                                        SQUARE_SIZE, SQUARE_SIZE))
         pygame.display.flip()
         clock.tick(60)
+
+
+def popup_en_pantalla(screen, text):
+    font = pygame.font.SysFont("Ubuntu", 48, True, False)
+    texto_titulo = font.render(text, False, pygame.Color(COLOR_NEGRO))
+    texto_coord = pygame.Rect(SCREEN_WIDTH/2 - texto_titulo.get_width()/2,
+                              SCREEN_HEIGHT - texto_titulo.get_height()/2 - SQUARE_SIZE/2,
+                              SCREEN_WIDTH, SCREEN_HEIGHT)
+    screen.blit(texto_titulo, texto_coord)
 
 
 if __name__ == '__main__':

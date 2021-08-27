@@ -57,6 +57,7 @@ class Tablero:
         for fil in range(ROWS):
             for col in range(fil % 2, ROWS, 2):
                 pygame.draw.rect(window, LIGHT_SQUARE, (fil * SQUARE_SIZE, col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+        pygame.draw.rect(window, COLOR_BLANCO, (0, SCREEN_HEIGHT - SQUARE_SIZE, SQUARE_SIZE * COLS, SQUARE_SIZE))
 
     # Al dejarlo separado nos permite simplificar la personalización por parte del usuario.
     @staticmethod
@@ -91,8 +92,8 @@ class Tablero:
         tb[move.startFil][move.startCol] = "--"
         tb[move.endFil][move.endCol] = move.piezaMov
         print(move.get_basic_move_notation())
-        for op in self.op_castle_log:
-            print(op.w_king_side, op.w_queen_side, op.b_king_side, op.b_queen_side)
+        # for op in self.op_castle_log:
+        #     print(op.w_king_side, op.w_queen_side, op.b_king_side, op.b_queen_side)
         self.logMov.append(move)
         self.turnoBlancas = not self.turnoBlancas
         if move.piezaMov == 'wK':
