@@ -26,7 +26,7 @@ class Tablero:
                           'Q': self.get_Queen_Mov,
                           'K': self.get_King_Mov}
         self.logMov = []
-        self.turnoBlancas = True  # True para blancas, False para negras
+        self.turno_blancas = True  # True para blancas, False para negras
         self.direcciones_en_orden_cruz = ((-1, 0), (1, 0), (0, -1), (0, 1),
                                           (-1, -1), (-1, 1), (1, -1), (1, 1))
         self.direcciones_en_orden_l = ((-2, -1), (-2, 1), (-1, 2), (1, 2),
@@ -73,7 +73,7 @@ class Tablero:
     def dibujar_realzar_posibles_casillas(self, window, tb, cuadrado_actual, lista_mov):
         if cuadrado_actual != ():
             fil, col = cuadrado_actual
-            if tb[fil][col][0] == ('w' if self.turnoBlancas else 'b'):
+            if tb[fil][col][0] == ('w' if self.turno_blancas else 'b'):
                 sq = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
                 sq.set_alpha(TRANSPARENCIA)  # Transparencia (0-255)
                 sq.fill(pygame.Color(COLOR_VERDE_CASILLAS_MARC))
@@ -95,7 +95,7 @@ class Tablero:
         # for op in self.op_castle_log:
         #     print(op.w_king_side, op.w_queen_side, op.b_king_side, op.b_queen_side)
         self.logMov.append(move)
-        self.turnoBlancas = not self.turnoBlancas
+        self.turno_blancas = not self.turno_blancas
         if move.piezaMov == 'wK':
             self.wKing = (move.endFil, move.endCol)
         elif move.piezaMov == 'bK':
@@ -168,7 +168,7 @@ class Tablero:
             move = self.logMov.pop()
             tb[move.startFil][move.startCol] = move.piezaMov
             tb[move.endFil][move.endCol] = move.piezaCap
-            self.turnoBlancas = not self.turnoBlancas
+            self.turno_blancas = not self.turno_blancas
             if move.piezaMov == 'wK':
                 self.wKing = (move.startFil, move.startCol)
             elif move.piezaMov == 'bK':
@@ -200,7 +200,7 @@ class Tablero:
         for fil in range(len(self.board)):
             for col in range(len(self.board)):
                 pieza_color = self.board[fil][col][0]
-                if (pieza_color == 'w' and self.turnoBlancas) or (pieza_color == 'b' and not self.turnoBlancas):
+                if (pieza_color == 'w' and self.turno_blancas) or (pieza_color == 'b' and not self.turno_blancas):
                     pieza = self.board[fil][col][1]
                     # noinspection PyArgumentList
                     self.dict_move[pieza](fil, col, lista_moves)
@@ -209,7 +209,7 @@ class Tablero:
     def filtrar_movimientos_validos(self):
         moves = []
         self.check, self.pins, self.checks_list = self.look_for_pins_and_checks()
-        if self.turnoBlancas:
+        if self.turno_blancas:
             fil_king = self.wKing[0]
             col_king = self.wKing[1]
         else:
@@ -255,22 +255,22 @@ class Tablero:
             self.checkmate = False
             self.stalemate = False
 
-        if self.turnoBlancas:
+        if self.turno_blancas:
             self.get_Castling_Mov(self.wKing[0], self.wKing[1], moves)
         else:
             self.get_Castling_Mov(self.bKing[0], self.bKing[1], moves)
         return moves
 
     def inCheck(self):
-        if self.turnoBlancas:
+        if self.turno_blancas:
             return self.sqUnderAttack(self.wKing[0], self.wKing[1])
         else:
             return self.sqUnderAttack(self.bKing[0], self.bKing[1])
 
     def sqUnderAttack(self, fil_king, col_king):
-        self.turnoBlancas = not self.turnoBlancas
+        self.turno_blancas = not self.turno_blancas
         list_moves = self.obtener_todos_movimientos()
-        self.turnoBlancas = not self.turnoBlancas
+        self.turno_blancas = not self.turno_blancas
         for move in list_moves:
             if move.endFil == fil_king and move.endCol == col_king:
                 return True
@@ -284,7 +284,7 @@ class Tablero:
         check = False
         pins = []
         checks_list = []
-        if self.turnoBlancas:
+        if self.turno_blancas:
             aliado = "w"
             enemigo = "b"
             fil_king = self.wKing[0]
@@ -310,10 +310,11 @@ class Tablero:
                             break
                     elif pos_final[0] == enemigo:
                         tipo_pieza_enemiga = pos_final[1]
+                        # Mucho cuidado con los <= aquí.
                         if (0 <= j <= 3 and tipo_pieza_enemiga == 'R') or \
                                 (4 <= j <= 7 and tipo_pieza_enemiga == 'B') or \
                                 (i == 1 and tipo_pieza_enemiga == 'p' and ((enemigo == 'w' and 6 <= j <= 7) or
-                                                                           (enemigo == 'b' and 4 <= j < 5))) or \
+                                                                           (enemigo == 'b' and 4 <= j <= 5))) or \
                                 (tipo_pieza_enemiga == 'Q') or (i == 1 and tipo_pieza_enemiga == 'K'):
                             if posible_pin == ():
                                 check = True
@@ -326,7 +327,7 @@ class Tablero:
                             break
                 else:  # Fin de tablero
                     break
-        # Ahora comprobamos el caballo con la lista de direcciones correspondiente:\
+        # Ahora comprobamos el caballo con la lista de direcciones correspondiente:
         for i in self.direcciones_en_orden_l:
             eleccion_fil = fil_king + i[0]
             eleccion_col = col_king + i[1]
@@ -347,7 +348,7 @@ class Tablero:
                 self.pins.remove(self.pins[i])
                 break
 
-        if self.turnoBlancas:
+        if self.turno_blancas:
             if self.board[fil - 1][col] == "--":
                 if not pin_actual or pin_dir == (-1, 0):
                     lista_moves.append(Movimiento((fil, col), (fil - 1, col), self.board))
@@ -397,7 +398,7 @@ class Tablero:
                     self.pins.remove(self.pins[i])
                 break
 
-        color_enemigo = 'b' if self.turnoBlancas else 'w'
+        color_enemigo = 'b' if self.turno_blancas else 'w'
         for i in self.direcciones_en_orden_cruz[:4]:  # Cambiar a itertools.isslice para optimizar que esto crea copia
             for j in range(1, 8):
                 fin_eleccion_fil = fil + i[0] * j
@@ -423,7 +424,7 @@ class Tablero:
                 self.pins.remove(self.pins[i])
                 break
         # Movimientos del caballo siguiendo el sentido de las agujas del reloj.
-        color_enemigo = 'b' if self.turnoBlancas else 'w'
+        color_enemigo = 'b' if self.turno_blancas else 'w'
         for i in self.direcciones_en_orden_l:
             eleccion_fil = fil + i[0]  # Movimiento restrictivo a la forma de L
             eleccion_col = col + i[1]
@@ -442,7 +443,7 @@ class Tablero:
                 pin_dir = (self.pins[i][2], self.pins[i][3])
                 self.pins.remove(self.pins[i])
                 break
-        color_enemigo = 'b' if self.turnoBlancas else 'w'
+        color_enemigo = 'b' if self.turno_blancas else 'w'
         for i in self.direcciones_en_orden_cruz[4:8]:  # Cambiar a itertools.isslice para optimizar que esto crea copia
             for j in range(1, 8):
                 fin_eleccion_fil = fil + i[0] * j
@@ -482,7 +483,7 @@ class Tablero:
 
     def get_King_Mov(self, fil, col, lista_moves):
         # Sentido de las aguajas del reloj
-        color_enemigo = 'b' if self.turnoBlancas else 'w'
+        color_enemigo = 'b' if self.turno_blancas else 'w'
         for i in self.direcciones_en_orden_cruz:
             eleccion_fil = fil + i[0]
             eleccion_col = col + i[1]
@@ -504,12 +505,12 @@ class Tablero:
     def get_Castling_Mov(self, fil, col, lista_moves):
         if self.sqUnderAttack(fil, col):
             return
-        if (self.turnoBlancas and self.op_castle.w_king_side) or (not self.turnoBlancas and self.op_castle.b_king_side):
+        if (self.turno_blancas and self.op_castle.w_king_side) or (not self.turno_blancas and self.op_castle.b_king_side):
             if self.board[fil][col + 1] == '--' and self.board[fil][col + 2] == '--':
                 if not self.sqUnderAttack(fil, col + 1) and not self.sqUnderAttack(fil, col + 2):
                     lista_moves.append(Movimiento((fil, col), (fil, col + 2), self.board, is_castle=True))
-        if (self.turnoBlancas and self.op_castle.w_queen_side) or \
-                (not self.turnoBlancas and self.op_castle.b_queen_side):
+        if (self.turno_blancas and self.op_castle.w_queen_side) or \
+                (not self.turno_blancas and self.op_castle.b_queen_side):
             if self.board[fil][col - 1] == '--' and self.board[fil][col - 2] == '--' \
                     and self.board[fil][col - 3] == '--':
                 if not self.sqUnderAttack(fil, col - 1) and not self.sqUnderAttack(fil, col - 2):
