@@ -7,7 +7,7 @@
 * [Ejemplos](#Ejemplos)
 
 ## Descripción
-Ajedrez Player vs AI (Incomplete)
+Ajedrez Player vs AI o Player vs Player (Incomplete)
 
 ## Instrucciones
 * Movimiento con un click en la pieza que se desee mover a la casilla deseada
@@ -19,10 +19,11 @@ Ajedrez Player vs AI (Incomplete)
 - [ ] Mejora de la IA.
 - [ ] Stalemate por repetición o por la regla de los 50 movimientos.
 - [ ] Documentación extensiva.
+- [ ] Añadir tests.
 - [ ] Reordenación del código.
 - [ ] Mejora sustancial del rendimiento.
 - [ ] Implementación de GUI completa con más funcionalidades.
 - [ ] ...
 
 ## Ejemplos
-![](../../../Pictures/chessAI1.png)
+![Image alt text](images/chessAI1.png?raw=true)
