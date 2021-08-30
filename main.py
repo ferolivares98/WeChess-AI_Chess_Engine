@@ -1,8 +1,9 @@
 import pygame
 
-from constants import *
 from game.tablero import Tablero
 from game.movimiento import Movimiento
+from constants import *
+import AI
 
 
 def main():
@@ -21,18 +22,20 @@ def main():
     pygame.display.set_caption('WeChessAI')
     cargar_imagenes_piezas()
     tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = inicializar_partida()
-
+    humano_blancas = False  # Identifica a los jugadores, podemos forzar IA vs IA
+    humano_negras = False
     run = True
     clock = pygame.time.Clock()
 
     while run:
+        turno_humano = (tablero.turno_blancas and humano_blancas) or (not tablero.turno_blancas and humano_negras)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
 
             # Eventos de ratón
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if not game_over:  # Revisar (cuando se amplíe en menú)
+                if not game_over and turno_humano:  # Revisar (cuando se amplíe en menú)
                     coord_raton = pygame.mouse.get_pos()  # Se obtiene la localización del ratón.
                     col = coord_raton[0] // SQUARE_SIZE
                     fil = coord_raton[1] // SQUARE_SIZE
@@ -65,6 +68,14 @@ def main():
                     tablero, lista_mov_validos, flag_movimiento, \
                     cuadrado_actual, click_movimiento, game_over = inicializar_partida()
 
+        # Lógica de la IA
+        if not game_over and not turno_humano:
+            move_AI = AI.movimiento_random(lista_mov_validos)
+            tablero.realizar_movimiento(move_AI, tablero.board)
+            animacion_mov(tablero.logMov[-1], screen, tablero, clock)  # O usar flags
+            flag_movimiento = True
+            turno_humano = True
+
         if flag_movimiento:
             lista_mov_validos = tablero.filtrar_movimientos_validos()
             flag_movimiento = False
@@ -72,7 +83,7 @@ def main():
 
         if tablero.checkmate:
             game_over = True
-            if tablero.turnoBlancas:
+            if tablero.turno_blancas:
                 popup_en_pantalla(screen, 'Checkmate. Ganan negras!')
             else:
                 popup_en_pantalla(screen, 'Checkmate. Ganan blancas!')
