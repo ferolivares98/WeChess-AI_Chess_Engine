@@ -70,7 +70,10 @@ def main():
 
         # Lógica de la IA
         if not game_over and not turno_humano:
-            move_AI = AI.movimiento_random(lista_mov_validos)
+            # move_AI = AI.movimiento_random(lista_mov_validos)
+            move_AI = AI.movimiento_mejor(tablero, lista_mov_validos)
+            if move_AI is None:
+                move_AI = AI.movimiento_random(lista_mov_validos)  # Checkmate inevitable.
             tablero.realizar_movimiento(move_AI, tablero.board)
             animacion_mov(tablero.logMov[-1], screen, tablero, clock)  # O usar flags
             flag_movimiento = True
