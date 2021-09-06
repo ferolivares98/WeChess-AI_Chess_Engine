@@ -23,7 +23,7 @@ def main():
     cargar_imagenes_piezas()
     tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = inicializar_partida()
     humano_blancas = False  # Identifica a los jugadores, podemos forzar IA vs IA
-    humano_negras = False
+    humano_negras = True
     run = True
     clock = pygame.time.Clock()
 
@@ -64,6 +64,7 @@ def main():
                 if event.key == pygame.K_z:
                     tablero.arreglar_movimiento(tablero.board)
                     flag_movimiento = True
+                    game_over = False
                 if event.key == pygame.K_r:
                     tablero, lista_mov_validos, flag_movimiento, \
                     cuadrado_actual, click_movimiento, game_over = inicializar_partida()
@@ -71,7 +72,9 @@ def main():
         # Lógica de la IA
         if not game_over and not turno_humano:
             # move_AI = AI.movimiento_random(lista_mov_validos)
-            move_AI = AI.movimiento_mejor(tablero, lista_mov_validos)
+            # move_AI = AI.movimiento_mejor(tablero, lista_mov_validos)
+            # move_AI = AI.movimiento_mejor_minmax(tablero, lista_mov_validos)
+            move_AI = AI.movimiento_mejor_negamax(tablero, lista_mov_validos)
             if move_AI is None:
                 move_AI = AI.movimiento_random(lista_mov_validos)  # Checkmate inevitable.
             tablero.realizar_movimiento(move_AI, tablero.board)

@@ -174,6 +174,9 @@ class Tablero:
             elif move.piezaMov == 'bK':
                 self.bKing = (move.startFil, move.startCol)
 
+            self.checkmate = False
+            self.stalemate = False
+
             # En passant
             if move.isEnPassant:
                 self.board[move.endFil][move.endCol] = '--'  # Dejamos la posición capturada vacía
