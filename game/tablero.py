@@ -91,7 +91,7 @@ class Tablero:
     def realizar_movimiento(self, move, tb):
         tb[move.startFil][move.startCol] = "--"
         tb[move.endFil][move.endCol] = move.piezaMov
-        print(move.piezaMov + ": " + move.get_basic_move_notation())
+        # print(move.piezaMov + ": " + move.get_basic_move_notation())
         # for op in self.op_castle_log:
         #     print(op.w_king_side, op.w_queen_side, op.b_king_side, op.b_queen_side)
         self.logMov.append(move)
@@ -508,7 +508,8 @@ class Tablero:
     def get_Castling_Mov(self, fil, col, lista_moves):
         if self.sqUnderAttack(fil, col):
             return
-        if (self.turno_blancas and self.op_castle.w_king_side) or (not self.turno_blancas and self.op_castle.b_king_side):
+        if (self.turno_blancas and self.op_castle.w_king_side) or \
+                (not self.turno_blancas and self.op_castle.b_king_side):
             if self.board[fil][col + 1] == '--' and self.board[fil][col + 2] == '--':
                 if not self.sqUnderAttack(fil, col + 1) and not self.sqUnderAttack(fil, col + 2):
                     lista_moves.append(Movimiento((fil, col), (fil, col + 2), self.board, is_castle=True))

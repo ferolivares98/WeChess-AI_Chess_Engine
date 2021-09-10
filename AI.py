@@ -1,9 +1,8 @@
 import random
 
 from constants import *
-from game.tablero import Tablero
 
-DEPTH = 4
+DEPTH = 3
 
 
 def movimiento_random(lista_moves):
@@ -17,7 +16,6 @@ def movimiento_mejor(tb, lista_moves):
     """
     Mejor movimiento basado en el valor de los materiales (one movers)
     """
-    punt_minmax = CHECKMATE  # Peor caso posible
     punt_minmax_oponente = CHECKMATE
     mult_turno = 1 if tb.turno_blancas else -1  # Si es negativo es mejor para negras
     mejor_move = None

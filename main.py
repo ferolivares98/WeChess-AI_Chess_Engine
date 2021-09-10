@@ -66,8 +66,8 @@ def main():
                     flag_movimiento = True
                     game_over = False
                 if event.key == pygame.K_r:
-                    tablero, lista_mov_validos, flag_movimiento, \
-                    cuadrado_actual, click_movimiento, game_over = inicializar_partida()
+                    tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = \
+                        inicializar_partida()
 
         # Lógica de la IA
         if not game_over and not turno_humano:
