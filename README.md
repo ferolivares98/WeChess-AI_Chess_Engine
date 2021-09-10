@@ -19,8 +19,8 @@ Ajedrez Player vs AI o Player vs Player (Incomplete)
 - [ ] Mejora de la IA.
 - [ ] Stalemate por repetición o por la regla de los 50 movimientos.
 - [ ] Documentación extensiva.
-- [ ] Añadir tests.
-- [ ] Reordenación del código.
+- [ ] Añadir tests (en ello).
+- [ ] Reordenación del código (en ello).
 - [ ] Mejora sustancial del rendimiento.
 - [ ] Implementación de GUI completa con más funcionalidades.
 - [ ] ...
