@@ -3,7 +3,7 @@ import random
 from constants import *
 from game.tablero import Tablero
 
-DEPTH = 3
+DEPTH = 4
 
 
 def movimiento_random(lista_moves):
@@ -94,7 +94,8 @@ def movimiento_mejor_negamax(tb, lista_moves):
     sig_move = None
     random.shuffle(lista_moves)
     mult_turno = 1 if tb.turno_blancas else -1
-    movimiento_negamax(tb, lista_moves, DEPTH, mult_turno)
+    # movimiento_negamax(tb, lista_moves, DEPTH, mult_turno)
+    movimiento_negamax_AlphaBeta(tb, lista_moves, DEPTH, mult_turno, -CHECKMATE, CHECKMATE)
     return sig_move
 
 
@@ -121,21 +122,22 @@ def movimiento_negamax_AlphaBeta(tb, lista_moves, depth, mult_turno, alpha, beta
     if depth == 0:
         return mult_turno * calculo_punt_tablero(tb)
 
-    # Intentar evaluar los mejores movimientos de primeras
-
-
+    # Intentar evaluar los mejores movimientos de primeras (Revisar)
     punt_max = -CHECKMATE
     for move in lista_moves:
         tb.realizar_movimiento(move, tb.board)
         lista = tb.filtrar_movimientos_validos()
-        punt = -movimiento_negamax(tb, lista, depth-1, -mult_turno)
+        punt = -movimiento_negamax_AlphaBeta(tb, lista, depth-1, -mult_turno, -beta, -alpha)
         if punt > punt_max:
             punt_max = punt
             if depth == DEPTH:
                 sig_move = move
         tb.arreglar_movimiento(tb.board)
+        if punt_max > alpha:
+            alpha = punt_max
+        if alpha >= beta:
+            break
     return punt_max
-
 
 
 def calculo_punt_tablero(tb):

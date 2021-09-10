@@ -23,7 +23,7 @@ def main():
     cargar_imagenes_piezas()
     tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = inicializar_partida()
     humano_blancas = False  # Identifica a los jugadores, podemos forzar IA vs IA
-    humano_negras = True
+    humano_negras = False
     run = True
     clock = pygame.time.Clock()
 
@@ -71,16 +71,15 @@ def main():
 
         # Lógica de la IA
         if not game_over and not turno_humano:
-            # move_AI = AI.movimiento_random(lista_mov_validos)
-            # move_AI = AI.movimiento_mejor(tablero, lista_mov_validos)
-            # move_AI = AI.movimiento_mejor_minmax(tablero, lista_mov_validos)
-            move_AI = AI.movimiento_mejor_negamax(tablero, lista_mov_validos)
-            if move_AI is None:
-                move_AI = AI.movimiento_random(lista_mov_validos)  # Checkmate inevitable.
-            tablero.realizar_movimiento(move_AI, tablero.board)
+            # move_ai = AI.movimiento_random(lista_mov_validos)
+            # move_ai = AI.movimiento_mejor(tablero, lista_mov_validos)
+            # move_ai = AI.movimiento_mejor_minmax(tablero, lista_mov_validos)
+            move_ai = AI.movimiento_mejor_negamax(tablero, lista_mov_validos)
+            if move_ai is None:
+                move_ai = AI.movimiento_random(lista_mov_validos)  # Checkmate inevitable.
+            tablero.realizar_movimiento(move_ai, tablero.board)
             animacion_mov(tablero.logMov[-1], screen, tablero, clock)  # O usar flags
             flag_movimiento = True
-            turno_humano = True
 
         if flag_movimiento:
             lista_mov_validos = tablero.filtrar_movimientos_validos()
