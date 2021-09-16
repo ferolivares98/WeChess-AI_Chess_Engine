@@ -22,8 +22,8 @@ def main():
     pygame.display.set_caption('WeChessAI')
     cargar_imagenes_piezas()
     tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = inicializar_partida()
-    humano_blancas = False  # Identifica a los jugadores, podemos forzar IA vs IA
-    humano_negras = False
+    humano_blancas = True  # Identifica a los jugadores, podemos forzar IA vs IA
+    humano_negras = True
     run = True
     clock = pygame.time.Clock()
 
@@ -138,6 +138,10 @@ def animacion_mov(move, screen, tablero, clock):  # Revisar resaltar último mov
         final_sq = pygame.Rect(move.endCol * SQUARE_SIZE, move.endFil * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
         pygame.draw.rect(screen, color, final_sq)
         if move.piezaCap != '--':
+            if move.isEnPassant:
+                enPassant_nueva_fila = (move.endFil + 1) if move.piezaMov[0] == 'w' else (move.endFil - 1)
+                final_sq = pygame.Rect(move.endCol * SQUARE_SIZE, enPassant_nueva_fila * SQUARE_SIZE,
+                                       SQUARE_SIZE, SQUARE_SIZE)
             screen.blit(IMAGES[move.piezaCap], final_sq)
         screen.blit(IMAGES[move.piezaMov], pygame.Rect(col_actual * SQUARE_SIZE, fil_actual * SQUARE_SIZE,
                                                        SQUARE_SIZE, SQUARE_SIZE))
@@ -152,6 +156,9 @@ def popup_en_pantalla(screen, text):
                               SCREEN_HEIGHT - texto_titulo.get_height() / 2 - SQUARE_SIZE / 2,
                               SCREEN_WIDTH, SCREEN_HEIGHT)
     screen.blit(texto_titulo, texto_coord)
+
+def dibujar_move_log():
+
 
 
 if __name__ == '__main__':

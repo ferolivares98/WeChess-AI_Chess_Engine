@@ -43,6 +43,7 @@ class Tablero:
         self.checkmate = False  # Ahora mismo sin uso, disponibles para futuros mensajes
         self.stalemate = False
         self.pos_posible_en_passant = ()  # Coordenadas donde se capturaría ante la posibilidad de En Passant.
+        self.pos_posible_en_passant_log = [self.pos_posible_en_passant]
         self.op_castle = Castle(True, True, True, True)
         self.op_castle_log = [Castle(self.op_castle.w_king_side, self.op_castle.w_queen_side,
                                      self.op_castle.b_king_side, self.op_castle.b_queen_side)]
@@ -109,6 +110,7 @@ class Tablero:
             self.pos_posible_en_passant = ()
         if move.isEnPassant:
             self.board[move.startFil][move.endCol] = '--'
+        self.pos_posible_en_passant_log.append(self.pos_posible_en_passant)
 
         # Promoción
         if move.isPromocion:
@@ -181,10 +183,12 @@ class Tablero:
             if move.isEnPassant:
                 self.board[move.endFil][move.endCol] = '--'  # Dejamos la posición capturada vacía
                 self.board[move.startFil][move.endCol] = move.piezaCap
-                self.pos_posible_en_passant = (move.endFil, move.endCol)
+                # self.pos_posible_en_passant = (move.endFil, move.endCol)
             # Deshacer el avance de 2 del peón
-            if move.piezaMov[1] == 'p' and abs(move.startFil - move.endFil) == 2:
-                self.pos_posible_en_passant = ()
+            # if move.piezaMov[1] == 'p' and abs(move.startFil - move.endFil) == 2:
+            #     self.pos_posible_en_passant = ()
+            self.pos_posible_en_passant_log.pop()
+            self.pos_posible_en_passant = self.pos_posible_en_passant_log[-1]
 
             # Castling
             if len(self.op_castle_log) != 0:  # Revisar
