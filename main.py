@@ -157,8 +157,9 @@ def popup_en_pantalla(screen, text):
                               SCREEN_WIDTH, SCREEN_HEIGHT)
     screen.blit(texto_titulo, texto_coord)
 
-def dibujar_move_log():
 
+def dibujar_move_log():
+    pass
 
 
 if __name__ == '__main__':
