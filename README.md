@@ -16,6 +16,7 @@ Ajedrez Player vs AI o Player vs Player (Incomplete)
 
 ## Mejoras
 - [x] Implementación de la IA random.
+- [x] IA agresiva
 - [ ] Mejora de la IA.
 - [ ] Stalemate por repetición o por la regla de los 50 movimientos.
 - [ ] Documentación extensiva.
