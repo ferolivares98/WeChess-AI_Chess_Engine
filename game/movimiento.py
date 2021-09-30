@@ -22,8 +22,7 @@ class Movimiento:
         self.isPromocion = (self.piezaMov == 'wp' and self.endFil == 0) or (self.piezaMov == 'bp' and self.endFil == 7)
         # Castling
         self.isCastle = is_castle
-        if self.isCastle:
-            pass
+        self.isCaptura = self.piezaCap != '--'
 
     def get_basic_move_notation(self):
         return self.get_rank_file(self.startFil, self.startCol) + self.get_rank_file(self.endFil, self.endCol)
@@ -38,3 +37,19 @@ class Movimiento:
         if isinstance(other, Movimiento):
             return self.moveID == other.moveID
         return False
+
+    def __str__(self):
+        if self.isCastle:
+            return "O-O" if self.endCol == 6 else "O-O-O"
+
+        final_sq = self.get_rank_file(self.endFil, self.endCol)
+        if self.piezaMov[1] == 'p':
+            if self.isCaptura:
+                return self.colToFil[self.startCol] + "x" + final_sq
+            else:
+                return final_sq
+
+        mov_texto = self.piezaMov[1]
+        if self.isCaptura:
+            mov_texto += 'x'
+        return mov_texto + final_sq

@@ -58,7 +58,8 @@ class Tablero:
         for fil in range(ROWS):
             for col in range(fil % 2, ROWS, 2):
                 pygame.draw.rect(window, LIGHT_SQUARE, (fil * SQUARE_SIZE, col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
-        pygame.draw.rect(window, COLOR_BLANCO, (0, SCREEN_HEIGHT - SQUARE_SIZE, SQUARE_SIZE * COLS, SQUARE_SIZE))
+        pygame.draw.rect(window, COLOR_BLANCO, (0, FULL_BOARD_HEIGHT - SQUARE_SIZE, SQUARE_SIZE * COLS, SQUARE_SIZE))
+        pygame.draw.rect(window, COLOR_NEGRO, (FULL_BOARD_WIDTH, 0, LOG_WIDTH, LOG_HEIGHT))
 
     # Al dejarlo separado nos permite simplificar la personalización por parte del usuario.
     @staticmethod
