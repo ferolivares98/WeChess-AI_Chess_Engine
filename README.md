@@ -16,11 +16,13 @@ Ajedrez Player vs AI o Player vs Player (Incomplete)
 
 ## Mejoras
 - [x] Implementación de la IA random.
-- [ ] Mejora de la IA.
+- [x] IA agresiva
+- [ ] Mejora en el rendimiento.
+- [ ] Redes neuronales implementadas.
 - [ ] Stalemate por repetición o por la regla de los 50 movimientos.
 - [ ] Documentación extensiva.
-- [ ] Añadir tests (en ello).
-- [ ] Reordenación del código (en ello).
+- [ ] Añadir tests.
+- [ ] Reordenación del código.
 - [ ] Mejora sustancial del rendimiento.
 - [ ] Implementación de GUI completa con más funcionalidades.
 - [ ] ...
