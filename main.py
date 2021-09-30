@@ -18,9 +18,10 @@ def main():
     game_over = False  # Control sobre checkmates, stalemates y reinicios de partidas con la tecla R.
     """
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((FULL_BOARD_WIDTH + LOG_WIDTH, FULL_BOARD_HEIGHT))
     pygame.display.set_caption('WeChessAI')
     cargar_imagenes_piezas()
+    font = pygame.font.SysFont("Ubuntu", 18, False, False)
     tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = inicializar_partida()
     humano_blancas = True  # Identifica a los jugadores, podemos forzar IA vs IA
     humano_negras = True
@@ -39,7 +40,8 @@ def main():
                     coord_raton = pygame.mouse.get_pos()  # Se obtiene la localización del ratón.
                     col = coord_raton[0] // SQUARE_SIZE
                     fil = coord_raton[1] // SQUARE_SIZE
-                    if cuadrado_actual == (fil, col):
+                    # Desmarcar cuadrado, además de evitar out of bounds en log y título
+                    if cuadrado_actual == (fil, col) or fil >= 8 or col >= 8:
                         cuadrado_actual = ()  # Desmarcamos el último click
                         click_movimiento = []
                     else:
@@ -84,7 +86,7 @@ def main():
         if flag_movimiento:
             lista_mov_validos = tablero.filtrar_movimientos_validos()
             flag_movimiento = False
-        dibujar_estado(screen, tablero, cuadrado_actual, lista_mov_validos)
+        dibujar_estado(screen, tablero, cuadrado_actual, lista_mov_validos, font)
 
         if tablero.checkmate:
             game_over = True
@@ -118,10 +120,11 @@ def inicializar_partida():
     return tab, tab.filtrar_movimientos_validos(), False, (), [], False
 
 
-def dibujar_estado(screen, tablero, cuadrado_actual, lista_mov):
+def dibujar_estado(screen, tablero, cuadrado_actual, lista_mov, font):
     tablero.dibujar_cuadrado(screen)
     tablero.dibujar_realzar_posibles_casillas(screen, tablero.board, cuadrado_actual, lista_mov)
     tablero.dibujar_piezas(screen, tablero.board)
+    dibujar_move_log(screen, tablero, font)
 
 
 def animacion_mov(move, screen, tablero, clock):  # Revisar resaltar último movimiento
@@ -152,14 +155,33 @@ def animacion_mov(move, screen, tablero, clock):  # Revisar resaltar último mov
 def popup_en_pantalla(screen, text):
     font = pygame.font.SysFont("Ubuntu", 48, True, False)
     texto_titulo = font.render(text, False, pygame.Color(COLOR_NEGRO))
-    texto_coord = pygame.Rect(SCREEN_WIDTH / 2 - texto_titulo.get_width() / 2,
-                              SCREEN_HEIGHT - texto_titulo.get_height() / 2 - SQUARE_SIZE / 2,
-                              SCREEN_WIDTH, SCREEN_HEIGHT)
+    texto_coord = pygame.Rect(FULL_BOARD_WIDTH / 2 - texto_titulo.get_width() / 2,
+                              FULL_BOARD_HEIGHT - texto_titulo.get_height() / 2 - SQUARE_SIZE / 2,
+                              FULL_BOARD_WIDTH, FULL_BOARD_HEIGHT)
     screen.blit(texto_titulo, texto_coord)
 
 
-def dibujar_move_log():
-    pass
+def dibujar_move_log(screen, tablero, font):
+    log = tablero.logMov
+    col_y = LOG_PADDING_HEIGHT
+    col_x = FULL_BOARD_WIDTH + LOG_PADDING_WIDTH
+    log_print = []
+    for i in range(0, len(log), 2):
+        mov_turno = str(i // 2 + 1) + ". " + str(log[i]) + "  "
+        if i + 1 < len(log):
+            mov_turno += str(log[i+1])
+        log_print.append(mov_turno)
+
+    for j in range(len(log_print)):
+        mov = log_print[j]
+        mov_objeto = font.render(mov, True, pygame.Color("White"))
+        mov_localizacion = pygame.Rect(col_x, col_y, FULL_BOARD_WIDTH + LOG_WIDTH, FULL_BOARD_HEIGHT)
+        screen.blit(mov_objeto, mov_localizacion)
+        if j % 2:
+            col_y += mov_objeto.get_height()
+            col_x = FULL_BOARD_WIDTH + LOG_PADDING_WIDTH
+        else:
+            col_x += mov_objeto.get_width() + LOG_PADDING_WIDTH
 
 
 if __name__ == '__main__':
