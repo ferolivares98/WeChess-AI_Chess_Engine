@@ -424,7 +424,25 @@ class Tablero:
                     if not pin_actual or pin_dir == (1, -1):
                         lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board))
                 elif (fil + 1, col - 1) == self.pos_posible_en_passant:
-                    lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board, en_passant_posible=True))
+                    pieza_ataque = pieza_pin_o_bloqueo = False
+                    if k_fil == fil:
+                        if k_col < col:
+                            rango_interior = range(k_col + 1, col - 1)
+                            rango_exterior = range(col + 1, COLS)
+                        else:
+                            rango_interior = range(k_col - 1, col, -1)
+                            rango_exterior = range(col - 2, -1, -1)
+                        for i in rango_interior:
+                            if self.board[fil][i] != "--":  # ALguna pieza bloquea
+                                pieza_pin_o_bloqueo = True
+                        for i in rango_exterior:
+                            if self.board[fil][i][0] == 'w' and (self.board[fil][i][1] == 'R'
+                                                                 or self.board[fil][i][1] == 'Q'):  # Cambio de w
+                                pieza_ataque = True
+                            elif self.board[fil][i] != '--':
+                                pieza_pin_o_bloqueo = True
+                    if not pieza_ataque or pieza_pin_o_bloqueo:
+                        lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board, en_passant_posible=True))
             if col + 1 <= 7:
                 if self.board[fil + 1][col + 1][0] == 'w':
                     if not pin_actual or pin_dir == (1, 1):
@@ -433,23 +451,23 @@ class Tablero:
                     pieza_ataque = pieza_pin_o_bloqueo = False
                     if k_fil == fil:
                         if k_col < col:
-                            rango_interior = range(k_col + 1, col - 1)
-                            rango_exterior = range(col + 1, COLS)
+                            rango_interior = range(k_col + 1, col)
+                            rango_exterior = range(col + 2, COLS)
                         else:
-                            rango_interior = range(k_col - 1, col - 1)
-                            rango_exterior = range(col - 2, -1, -1)
+                            rango_interior = range(k_col - 1, col + 1, -1)
+                            rango_exterior = range(col - 1, -1, -1)
                         for i in rango_interior:
                             if self.board[fil][i] != "--":  # ALguna pieza bloquea
                                 pieza_pin_o_bloqueo = True
                         for i in rango_exterior:
-                            if self.board[fil][i][0] == 'b' and (self.board[fil][i][1] == 'R'
+                            if self.board[fil][i][0] == 'w' and (self.board[fil][i][1] == 'R'
                                                                  or self.board[fil][i][1] == 'Q'):
                                 pieza_ataque = True
                             elif self.board[fil][i] != '--':
                                 pieza_pin_o_bloqueo = True
                     if not pieza_ataque or pieza_pin_o_bloqueo:
                         lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board, en_passant_posible=True))
-        # Faltan promociones y en passant...
+        # TODO: Faltan promociones, evitar duplicados y comprobar todos los movimientos...
 
     def get_Rook_Mov(self, fil, col, lista_moves):
         pin_actual = False
