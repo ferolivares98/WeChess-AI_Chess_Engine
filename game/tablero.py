@@ -59,7 +59,7 @@ class Tablero:
             for col in range(fil % 2, ROWS, 2):
                 pygame.draw.rect(window, LIGHT_SQUARE, (fil * SQUARE_SIZE, col * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
         pygame.draw.rect(window, COLOR_BLANCO, (0, FULL_BOARD_HEIGHT - SQUARE_SIZE, SQUARE_SIZE * COLS, SQUARE_SIZE))
-        pygame.draw.rect(window, COLOR_NEGRO, (FULL_BOARD_WIDTH, 0, LOG_WIDTH, LOG_HEIGHT))
+        pygame.draw.rect(window, COLOR_FONDO_LOG, (FULL_BOARD_WIDTH, 0, LOG_WIDTH, LOG_HEIGHT))
 
     # Al dejarlo separado nos permite simplificar la personalización por parte del usuario.
     @staticmethod
@@ -347,14 +347,15 @@ class Tablero:
         return check, pins, checks_list
 
     def get_Pawn_Mov(self, fil, col, lista_moves):
-        pin_actual = False
-        pin_dir = ()
-        for i in range(len(self.pins) - 1, -1, -1):
-            if self.pins[i][0] == fil and self.pins[i][1] == col:
-                pin_actual = True
-                pin_dir = (self.pins[i][2], self.pins[i][3])
-                self.pins.remove(self.pins[i])
-                break
+        # pin_actual = False
+        # pin_dir = ()
+        # for i in range(len(self.pins) - 1, -1, -1):
+        #   if self.pins[i][0] == fil and self.pins[i][1] == col:
+        #       pin_actual = True
+        #       pin_dir = (self.pins[i][2], self.pins[i][3])
+        #       self.pins.remove(self.pins[i])
+        #       break
+        pin_actual, pin_dir = self.comprobacion_pin_pawn_bishop(fil, col)
 
         if self.turno_blancas:
             k_fil, k_col = self.wKing
@@ -387,7 +388,8 @@ class Tablero:
                             elif self.board[fil][i] != '--':
                                 pieza_pin_o_bloqueo = True
                     if not pieza_ataque or pieza_pin_o_bloqueo:
-                        lista_moves.append(Movimiento((fil, col), (fil - 1, col - 1), self.board, en_passant_posible=True))
+                        lista_moves.append(Movimiento((fil, col), (fil - 1, col - 1),
+                                                      self.board, en_passant_posible=True))
             if col + 1 <= 7:  # Captura derecha
                 if self.board[fil - 1][col + 1][0] == 'b':
                     if not pin_actual or pin_dir == (-1, 1):
@@ -411,7 +413,8 @@ class Tablero:
                             elif self.board[fil][i] != '--':
                                 pieza_pin_o_bloqueo = True
                     if not pieza_ataque or pieza_pin_o_bloqueo:
-                        lista_moves.append(Movimiento((fil, col), (fil - 1, col + 1), self.board, en_passant_posible=True))
+                        lista_moves.append(Movimiento((fil, col), (fil - 1, col + 1),
+                                                      self.board, en_passant_posible=True))
         else:
             k_fil, k_col = self.bKing
             if self.board[fil + 1][col] == "--":
@@ -442,7 +445,8 @@ class Tablero:
                             elif self.board[fil][i] != '--':
                                 pieza_pin_o_bloqueo = True
                     if not pieza_ataque or pieza_pin_o_bloqueo:
-                        lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1), self.board, en_passant_posible=True))
+                        lista_moves.append(Movimiento((fil, col), (fil + 1, col - 1),
+                                                      self.board, en_passant_posible=True))
             if col + 1 <= 7:
                 if self.board[fil + 1][col + 1][0] == 'w':
                     if not pin_actual or pin_dir == (1, 1):
@@ -466,8 +470,18 @@ class Tablero:
                             elif self.board[fil][i] != '--':
                                 pieza_pin_o_bloqueo = True
                     if not pieza_ataque or pieza_pin_o_bloqueo:
-                        lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1), self.board, en_passant_posible=True))
+                        lista_moves.append(Movimiento((fil, col), (fil + 1, col + 1),
+                                                      self.board, en_passant_posible=True))
         # TODO: Faltan promociones, evitar duplicados y comprobar todos los movimientos...
+
+    def comprobacion_pin_pawn_bishop(self, fil, col):
+        pin_direc = ()
+        for i in range(len(self.pins) - 1, -1, -1):
+            if self.pins[i][0] == fil and self.pins[i][1] == col:
+                pin_direc = (self.pins[i][2], self.pins[i][3])
+                self.pins.remove(self.pins[i])
+                return True, pin_direc
+        return False, pin_direc
 
     def get_Rook_Mov(self, fil, col, lista_moves):
         pin_actual = False
@@ -517,14 +531,17 @@ class Tablero:
                         lista_moves.append(Movimiento((fil, col), (eleccion_fil, eleccion_col), self.board))
 
     def get_Bishop_Mov(self, fil, col, lista_moves):
-        pin_actual = False
-        pin_dir = ()
-        for i in range(len(self.pins) - 1, -1, -1):
-            if self.pins[i][0] == fil and self.pins[i][1] == col:
-                pin_actual = True
-                pin_dir = (self.pins[i][2], self.pins[i][3])
-                self.pins.remove(self.pins[i])
-                break
+        # pin_actual = False
+        # pin_dir = ()
+        # for i in range(len(self.pins) - 1, -1, -1):
+        #     if self.pins[i][0] == fil and self.pins[i][1] == col:
+        #         pin_actual = True
+        #         pin_dir = (self.pins[i][2], self.pins[i][3])
+        #         self.pins.remove(self.pins[i])
+        #         break
+
+        pin_actual, pin_dir = self.comprobacion_pin_pawn_bishop(fil, col)
+
         color_enemigo = 'b' if self.turno_blancas else 'w'
         for i in self.direcciones_en_orden_cruz[4:8]:  # Cambiar a itertools.isslice para optimizar que esto crea copia
             for j in range(1, 8):

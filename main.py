@@ -23,8 +23,8 @@ def main():
     cargar_imagenes_piezas()
     font = pygame.font.SysFont("Ubuntu", 18, False, False)
     tablero, lista_mov_validos, flag_movimiento, cuadrado_actual, click_movimiento, game_over = inicializar_partida()
-    humano_blancas = True  # Identifica a los jugadores, podemos forzar IA vs IA
-    humano_negras = True
+    humano_blancas = False  # Identifica a los jugadores, podemos forzar IA vs IA
+    humano_negras = False
     run = True
     clock = pygame.time.Clock()
 
@@ -174,7 +174,7 @@ def dibujar_move_log(screen, tablero, font):
 
     for j in range(len(log_print)):
         mov = log_print[j]
-        mov_objeto = font.render(mov, True, pygame.Color("White"))
+        mov_objeto = font.render(mov, True, pygame.Color(COLOR_NEGRO))
         mov_localizacion = pygame.Rect(col_x, col_y, FULL_BOARD_WIDTH + LOG_WIDTH, FULL_BOARD_HEIGHT)
         screen.blit(mov_objeto, mov_localizacion)
         if j % 2:
@@ -182,6 +182,8 @@ def dibujar_move_log(screen, tablero, font):
             col_x = FULL_BOARD_WIDTH + LOG_PADDING_WIDTH
         else:
             col_x += mov_objeto.get_width() + LOG_PADDING_WIDTH
+
+        # TODO: extender el log a 4 por posición, extendiendo el propio rectángulo
 
 
 if __name__ == '__main__':
