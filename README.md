@@ -24,7 +24,8 @@ Ajedrez Player vs AI o Player vs Player (Incomplete)
 - [ ] Añadir tests.
 - [ ] Reordenación del código.
 - [ ] Mejora sustancial del rendimiento.
-- [ ] Implementación de GUI completa con más funcionalidades.
+- [x] Implementación de GUI parcial.
+- [ ] Implementación de GUI completa con más funcionalidades y con la notación correcta.
 - [ ] ...
 
 ## Ejemplos
