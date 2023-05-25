@@ -34,9 +34,7 @@ class Movimiento:
 
     # Override del equals como en Java para comparar objetos entre sí
     def __eq__(self, other):
-        if isinstance(other, Movimiento):
-            return self.moveID == other.moveID
-        return False
+        return self.moveID == other.moveID if isinstance(other, Movimiento) else False
 
     def __str__(self):
         if self.isCastle:
@@ -45,7 +43,7 @@ class Movimiento:
         final_sq = self.get_rank_file(self.endFil, self.endCol)
         if self.piezaMov[1] == 'p':
             if self.isCaptura:
-                return self.colToFil[self.startCol] + "x" + final_sq
+                return f"{self.colToFil[self.startCol]}x{final_sq}"
             else:
                 return final_sq
 

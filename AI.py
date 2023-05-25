@@ -145,10 +145,7 @@ def calculo_punt_tablero(tb):
     :return:
     """
     if tb.checkmate:
-        if tb.turno_blancas:
-            return -CHECKMATE
-        else:
-            return CHECKMATE
+        return -CHECKMATE if tb.turno_blancas else CHECKMATE
     if tb.stalemate:
         return STALEMATE  # Es 0...
 

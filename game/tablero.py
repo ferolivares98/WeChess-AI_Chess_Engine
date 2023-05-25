@@ -73,18 +73,25 @@ class Tablero:
                                                            SQUARE_SIZE, SQUARE_SIZE))
 
     def dibujar_realzar_posibles_casillas(self, window, tb, cuadrado_actual, lista_mov):
-        if cuadrado_actual != ():
-            fil, col = cuadrado_actual
-            if tb[fil][col][0] == ('w' if self.turno_blancas else 'b'):
-                sq = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
-                sq.set_alpha(TRANSPARENCIA)  # Transparencia (0-255)
-                sq.fill(pygame.Color(COLOR_VERDE_CASILLAS_MARC))
-                window.blit(sq, (col * SQUARE_SIZE, fil * SQUARE_SIZE))
-                # sq.set_alpha(TRANSPARENCIA//2)  # Transparencia mayor en los movimientos
-                sq.fill(pygame.Color(COLOR_AZUL_CASILLAS_MOV))
-                for m in lista_mov:
-                    if m.startFil == fil and m.startCol == col:
-                        window.blit(sq, (SQUARE_SIZE * m.endCol, SQUARE_SIZE * m.endFil))
+        if cuadrado_actual == ():
+            return
+        fil, col = cuadrado_actual
+        if tb[fil][col][0] == ('w' if self.turno_blancas else 'b'):
+            self._extracted_from_dibujar_realzar_posibles_casillas_5(
+                window, col, fil, lista_mov
+            )
+
+    # TODO Rename this here and in `dibujar_realzar_posibles_casillas`
+    def _extracted_from_dibujar_realzar_posibles_casillas_5(self, window, col, fil, lista_mov):
+        sq = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
+        sq.set_alpha(TRANSPARENCIA)  # Transparencia (0-255)
+        sq.fill(pygame.Color(COLOR_VERDE_CASILLAS_MARC))
+        window.blit(sq, (col * SQUARE_SIZE, fil * SQUARE_SIZE))
+        # sq.set_alpha(TRANSPARENCIA//2)  # Transparencia mayor en los movimientos
+        sq.fill(pygame.Color(COLOR_AZUL_CASILLAS_MOV))
+        for m in lista_mov:
+            if m.startFil == fil and m.startCol == col:
+                window.blit(sq, (SQUARE_SIZE * m.endCol, SQUARE_SIZE * m.endFil))
                         # Marcado más discreto con círculos (habría que mejorarlo ante posibles capturas)
                         # pygame.draw.circle(window, COLOR_GRIS_CASILLAS_MOV,
                         #                  (m.endCol * SQUARE_SIZE + SQUARE_SIZE//2,
