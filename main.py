@@ -5,6 +5,8 @@ from game.movimiento import Movimiento
 from constants import *
 import AI
 
+# [ ] English translation
+
 
 def main():
     """
@@ -111,8 +113,10 @@ def cargar_imagenes_piezas():
     """
     piezas = ['wp', 'wR', 'wN', 'wB', 'wK', 'wQ', 'bp', 'bR', 'bN', 'bB', 'bK', 'bQ']
     for pieza in piezas:
-        IMAGES[pieza] = pygame.transform.scale(pygame.image.load("assets/" + pieza + ".png"),
-                                               (SQUARE_SIZE, SQUARE_SIZE))
+        IMAGES[pieza] = pygame.transform.scale(
+            pygame.image.load(f"assets/{pieza}.png"),
+            (SQUARE_SIZE, SQUARE_SIZE),
+        )
 
 
 def inicializar_partida():
@@ -167,7 +171,7 @@ def dibujar_move_log(screen, tablero, font):
     col_x = FULL_BOARD_WIDTH + LOG_PADDING_WIDTH
     log_print = []
     for i in range(0, len(log), 2):
-        mov_turno = str(i // 2 + 1) + ". " + str(log[i]) + "  "
+        mov_turno = f"{str(i // 2 + 1)}. {str(log[i])}  "
         if i + 1 < len(log):
             mov_turno += str(log[i+1])
         log_print.append(mov_turno)
