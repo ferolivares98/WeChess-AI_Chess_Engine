@@ -1,4 +1,4 @@
-# WeChessAI (Work in progress!)
+# WeChessAI
 Chess game and AI in Python. Allows PvP and PvsAI. Implemented move backlog, allowed moves checker, undo last move made by any player, etc...
 
 ## Índice
